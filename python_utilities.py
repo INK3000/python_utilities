@@ -1,6 +1,6 @@
 def translit(text):
     '''
-    Функция транслитерации с латинского алфавита в кирилицу. Строчные и заглавные буквы сохраняют свое состояние.
+    Функция транслитерации с кирилицы в латиницу. Строчные и заглавные буквы сохраняют свое состояние.
 
     Пример:
     translit('Строка') вернет 'Stroka'
@@ -13,7 +13,7 @@ def translit(text):
     :param text: может быть строкой, списком или кортежем
     :return: независимо от типа принятой переменной возвращает строку, транслитерированную по словарю ru_lt_dict
     '''
-    ru_lt_dict = {
+    cy_lt_dict = {
         'а': 'a',
         'б': 'b',
         'в': 'v',
@@ -53,7 +53,7 @@ def translit(text):
     for idx, char in enumerate(pre_result):
         char_is_upper = char.isupper()
         char = char.lower()
-        if char in ru_lt_dict:
-            pre_result[idx] = ru_lt_dict[char].upper() if char_is_upper else ru_lt_dict[char]
+        if char in cy_lt_dict:
+            pre_result[idx] = cy_lt_dict[char].upper() if char_is_upper else cy_lt_dict[char]
     result = ''.join(pre_result)
     return result
