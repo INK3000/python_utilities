@@ -54,6 +54,6 @@ def translit(text):
         char_is_upper = char.isupper()
         char = char.lower()
         if char in ru_lt_dict:
-            pre_result[idx] = char_is_upper and ru_lt_dict[char].upper() or ru_lt_dict[char]
+            pre_result[idx] = ru_lt_dict[char].upper() if char_is_upper else ru_lt_dict[char]
     result = ''.join(pre_result)
     return result
