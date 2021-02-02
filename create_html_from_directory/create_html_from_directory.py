@@ -42,31 +42,30 @@ def write_html(path,filename,html_body=''):
 		html_file.write(html_foot)
 
 def fill_html_body(files):
-	html_body = """<div class="container">
-"""
+	html_body = ''
 	video_format = list(('mp4', 'avi', 'mpg'))
-	for root, directory, files in files:
-		root_name = root.split('/')[-1]
-		html_body +="""<div class="row py-3">
-					   <div class="col">"""
-		
+	for root, directory, files in sorted(files):
 		videos_html = ''
 		for file in files:
 			if file.split('.')[-1] in video_format:
 				videos_html += f'''<a class="px-5" target="_blank" href="{os.path.join(root, file)}">{file}</a>'''
 		if videos_html:
+			root_name = root.split('/')[-1]
+			html_body += """<div class="container">"""
+			html_body +="""<div class="row py-3">
+					   <div class="col">"""
 			html_body += f'''<p>{root_name}</p>'''
 			html_body += videos_html
-		html_body += '</div></div>'
-	html_body += "</div>"
+			html_body += '</div></div></div>'
 	return html_body
+
 
 
 
 def main():
 	cwd = os.getcwd()
 	files = get_files(cwd)
-	playlist_path = create_directory(cwd, '000_[Playlist]')
+	playlist_path = create_directory(cwd, 'playlist')
 	html_body = fill_html_body(files)
 	write_html(playlist_path, 'index.html', html_body)
 
