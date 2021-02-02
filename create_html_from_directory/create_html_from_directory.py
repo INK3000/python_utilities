@@ -1,5 +1,41 @@
 #!/usr/bin/python
 import os
+import subprocess
+
+class VideoFile:
+    total_duration = 0
+    total_count = 0
+    instance = ()
+    def __init__(self, root, filename):
+        self.filename = filename
+        self.root = root
+        self.duration = self.get_duration()
+        self.full_path = os.path.join(self.root, self.filename)
+        VideoFile.instance += (self,)
+        VideoFile.total_duration += self.duration
+        VideoFile.total_count += 1
+
+
+    def get_duration(self):
+            full_path = os.path.join(self.root, self.filename)
+            cmd = 'ffprobe -i \'{}\' -show_entries format=duration -v quiet -of csv="p=0"'.format(full_path)
+            p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT, universal_newlines=True)
+            # output = p.stdout.read().decode().split()
+            stdout, stderr = p.communicate()
+            duration = int(float(stdout))
+            return duration
+
+
+
+    def __repr__(self):
+        return ('File "{}" - Duration: {}'.format(self.filename, sec_to_hms(self.duration)))
+
+    def __str__(self):
+        return ('File "{}" - Duration: {}'.format(self.filename, sec_to_hms(self.duration)))
+
+    def __len__(self):
+        return self.duration
 
 
 html_head = """
@@ -25,6 +61,12 @@ def get_files(path):
 	return result
 
 
+def sec_to_hms(seconds):
+    h = seconds//3600
+    m = (seconds % 3600) // 60
+    s = seconds % 60
+    return '{:02d}:{:02d}:{:02d}'.format(h, m, s)
+
 
 def create_directory(path,name):
 	directory_path = os.path.join(path,name)
@@ -48,7 +90,9 @@ def fill_html_body(files):
 		videos_html = ''
 		for file in files:
 			if file.split('.')[-1] in video_format:
-				videos_html += f'''<a class="px-5" target="_blank" href="{os.path.join(root, file)}">{file}</a>'''
+				video = VideoFile(root, file)
+				print(video)
+				videos_html += f'''<a class="px-5" target="_blank" href="{video.full_path}">{video.filename} [{sec_to_hms(video.duration)}]</a>'''
 		if videos_html:
 			root_name = root.split('/')[-1]
 			html_body += """<div class="container">"""
@@ -57,6 +101,13 @@ def fill_html_body(files):
 			html_body += f'''<p>{root_name}</p>'''
 			html_body += videos_html
 			html_body += '</div></div></div>'
+	#добавить общее время в конце страницы		
+	html_body = f"""<div class="container">
+					<div class="row py-3">
+			   		<div class="col">
+					<h3>{sec_to_hms(VideoFile.total_duration)}</h3>
+					</div></div></div>
+				""" + html_body
 	return html_body
 
 
