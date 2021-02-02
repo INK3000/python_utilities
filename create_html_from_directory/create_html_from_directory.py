@@ -65,7 +65,7 @@ def fill_html_body(files):
 def main():
 	cwd = os.getcwd()
 	files = get_files(cwd)
-	playlist_path = create_directory(cwd, 'playlist')
+	playlist_path = create_directory(cwd, '__playlist')
 	html_body = fill_html_body(files)
 	write_html(playlist_path, 'index.html', html_body)
 
