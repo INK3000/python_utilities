@@ -1,6 +1,17 @@
 #!/usr/bin/python
 import os
 import subprocess
+import time 
+
+def stopwatch(func):
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        result = func(*args,**kwargs)
+        end = time.perf_counter()
+        print(f'Время выполнения {end-start:.2f} сек.')
+        return result
+    return wrapper
+
 
 class VideoFile:
     total_duration = 0
@@ -112,7 +123,7 @@ def fill_html_body(files):
 
 
 
-
+@stopwatch
 def main():
 	cwd = os.getcwd()
 	files = get_files(cwd)
