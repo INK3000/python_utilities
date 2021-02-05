@@ -11,7 +11,9 @@ def stopwatch(func):
         start = time.perf_counter()
         result = func(*args, **kwargs)
         end = time.perf_counter()
-        print (f'Время выполнения {end-start}')
+        print (f'Время выполнения {end-start:.2f} сек.')
+        return result
+    return wrapper
 
 
 class VideoFile:
@@ -32,10 +34,10 @@ class VideoFile:
     def get_duration(self):
         full_path = os.path.join(self.root, self.filename)
         result = 0
-        media_info = MediaInfo.parse(filename)
+        media_info = MediaInfo.parse(full_path)
         for track in media_info.tracks:
             if track.track_type == "Video":
-                result = track.duration*0.001
+                result = int(track.duration*0.001)
         return result
 
 
@@ -130,11 +132,10 @@ def fill_html_body(files):
 
 
 
-
+@stopwatch
 def main():
 	cwd = os.getcwd()
 	files = get_files(cwd)
-	# playlist_path = create_directory(cwd, '__playlist')
 	html_body = fill_html_body(files)
 	html_body = html_head + html_body + html_foot
 	write_to_file(cwd, 'video_index.html', html_body, 'w')
