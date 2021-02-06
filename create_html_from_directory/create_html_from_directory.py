@@ -5,6 +5,9 @@ from datetime import datetime
 import pytz
 from pymediainfo import MediaInfo
 import time
+from pprint import pprint
+import jinja2
+import temp
 
 def stopwatch(func):
     def wrapper (*args, **kwargs):
@@ -56,9 +59,9 @@ html_head = """
 <!DOCTYPE html>
 <html>
 <head>
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
-	<title>Видеофайлы из директории</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+    <title>Видеофайлы из директории</title>
 </head>
 <body>
 """
@@ -70,11 +73,6 @@ html_foot = """
 </html>
 """ 
 
-def get_files(path):
-	result = os.walk(os.getcwd())
-	return result
-
-
 def sec_to_hms(seconds):
     h = seconds//3600
     m = (seconds % 3600) // 60
@@ -83,74 +81,83 @@ def sec_to_hms(seconds):
 
 
 def create_directory(path,name):
-	directory_path = os.path.join(path,name)
-	try:
-		os.mkdir(directory_path)
-	except FileExistsError:
-		print(f'Директория {directory_path} уже существует.\nПродолжаю выполнять задачу...')
-	return directory_path
+    directory_path = os.path.join(path,name)
+    try:
+        os.mkdir(directory_path)
+    except FileExistsError:
+        print(f'Директория {directory_path} уже существует.\nПродолжаю выполнять задачу...')
+    return directory_path
 
 def write_to_file(path,filename,text='', flag='w'):
-	full_path = os.path.join(path, filename)
-	with open(full_path, flag) as file:
-		file.write(text)
-		
+    full_path = os.path.join(path, filename)
+    with open(full_path, flag) as file:
+        file.write(text)
+        
 
-def fill_html_body(files):
-	html_body = ''
-	video_format = list(('mp4', 'avi', 'mpg'))
-	for root, directory, files in sorted(files):
-		videos_html = ''
-		for file in sorted(files):
-			if file.split('.')[-1] in video_format:
-				video = VideoFile(root, file)
-				print(video)
-				videos_html += f'''<div>
-							<a class="px-5" target="_blank" href="{video.full_path}">{video.filename} [{sec_to_hms(video.duration)}]</a>
-							</div>'''
-		if videos_html:
-			root_name = root.split('/')[-1]
-			html_body += """<div class="container">"""
-			html_body +="""<div class="row py-3">
-					   <div class="col-12">"""
-			html_body += f'''<p>{root_name}</p>'''
+def fill_html_body(path_list):
+    html_body = ''
+    video_format = list(('mp4', 'avi', 'mpg'))
+    for path in path_list:
+        for root, directory, files in os.walk(path):
+            level = root.replace(path, '').count(os.sep)
+            root_name = os.path.basename(root)
 
+            for file in sorted(files):
+                if file.split('.')[-1] in video_format:
+                    video = VideoFile(root, file)
+                    # print(video)
+                    html_body += str(video.filename)
+    #                 videos_html += f'''<div>
+    #                             <a class="px-{level+2}" target="_blank" href="{video.full_path}">{video.filename} [{sec_to_hms(video.duration)}]</a>
+    #                             </div>'''
+    #         if not founded_files[root]:
+    #             del founded_files[root]
+    #         if videos_html:
+    #             html_body += videos_html
 
+    #     if html_body:    
+    #         html_body = f'''<div class="container">
+    #                         <div class="row py-3">
+    #                         <div class="col-12 px-{level}">
+    #                         <p>{root_name}</p>''' + html_body + '</div></div></div>'
 
-
-
-			html_body += videos_html
-			html_body += '</div></div></div>'
-	#добавить общее время в конце страницы		
-	html_body = f"""<div class="container">
-					<div class="row py-3">
-			   		<div class="col">
-					<h3>{sec_to_hms(VideoFile.total_duration)}</h3>
-					</div></div></div>
-				""" + html_body
-	return html_body
+    # #добавить общее время в конце страницы        
+    # html_body = f"""<div class="container">
+    #                 <div class="row py-3">
+    #                    <div class="col">
+    #                 <h3>{sec_to_hms(VideoFile.total_duration)}</h3>
+    #                 </div></div></div>
+    #             """ + html_body
+    return html_body
 
 
 
 @stopwatch
 def main():
-	cwd = os.getcwd()
-	files = get_files(cwd)
-	html_body = fill_html_body(files)
-	html_body = html_head + html_body + html_foot
-	write_to_file(cwd, 'video_index.html', html_body, 'w')
+    # env = jinja2.Environment(loader=jinja2.FileSystemLoader('.'), autoescape=True)
+    env = jinja2.Environment(loader=jinja2.PackageLoader('temp'), autoescape=True)
 
-	if VideoFile.error_instance:
-		current_time = pytz.utc.localize(datetime.utcnow()).astimezone().isoformat()
-		write_to_file(cwd, 'error.txt', current_time+'\n','w')
-		for file in VideoFile.error_instance:
-			write_to_file(cwd, 'error.txt', str(file)+'\n', 'a')
+    # template = env.get_template('index.html')
+    
+    # print(template.render())
 
-	
-	
+    cwd = os.getcwd()
+    subdirs = [entry.path for entry in os.scandir(cwd)]
+    pprint(subdirs)
+    # subdirs.append(cwd)
+    html_body = fill_html_body(subdirs)
+    
+    html_body = html_head + html_body + html_foot
+    write_to_file(cwd, 'video_index.html', html_body, 'w')
 
+    if VideoFile.error_instance:
+        current_time = pytz.utc.localize(datetime.utcnow()).astimezone().isoformat()
+        write_to_file(cwd, 'error.txt', current_time+'\n','w')
+        for file in VideoFile.error_instance:
+            write_to_file(cwd, 'error.txt', str(file)+'\n', 'a')
 
+   
 
 
 if __name__ == '__main__':
-	main()
+    main()
