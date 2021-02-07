@@ -99,15 +99,12 @@ def get_videofiles(path):
                 parent_root = root
 
             if not p.is_relative_to(parent_root) or parent_root == path:
-                # video_files_dict.update({parent_root: video_files})
-                # html_body += template.render(level=level, root=os.path.basename(parent_root), video_files=video_files)     
                 video_files = temp_video_files
                 parent_root = root
             else:
                 video_files.extend(temp_video_files)
         if video_files:
             video_files_dict.update({parent_root: video_files})
-            # html_body += template.render(level=level, root=os.path.basename(parent_root), video_files=video_files)     
     return video_files_dict
 
 
@@ -116,13 +113,8 @@ def get_videofiles(path):
 def main():
 
     cwd = os.getcwd()
-    # subdirs = [entry.path for entry in os.scandir(cwd)]
-    # subdirs_basename = [os.path.basename(dir) for dir in subdirs]
-
     env = jinja2.Environment(loader=jinja2.PackageLoader('jj2_templates'), autoescape=True)
     template = env.get_template('category.html')
-
-    # rendered = template.render(current_path=os.path.basename(cwd), subdirs=subdirs_basename)
 
     video_files_dict = get_videofiles(cwd)
     print(f'Total duration: {sec_to_hms(VideoFile.total_duration)}')
