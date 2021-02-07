@@ -7,8 +7,7 @@ from pymediainfo import MediaInfo
 import time
 from pprint import pprint
 import jinja2
-import temp
-
+import jj2_templates
 def stopwatch(func):
     def wrapper (*args, **kwargs):
         start = time.perf_counter()
@@ -59,6 +58,7 @@ html_head = """
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
     <title>Видеофайлы из директории</title>
@@ -134,21 +134,19 @@ def fill_html_body(path_list):
 
 @stopwatch
 def main():
-    # env = jinja2.Environment(loader=jinja2.FileSystemLoader('.'), autoescape=True)
-    env = jinja2.Environment(loader=jinja2.PackageLoader('temp'), autoescape=True)
-
-    # template = env.get_template('index.html')
-    
-    # print(template.render())
 
     cwd = os.getcwd()
     subdirs = [entry.path for entry in os.scandir(cwd)]
-    pprint(subdirs)
-    # subdirs.append(cwd)
-    html_body = fill_html_body(subdirs)
-    
-    html_body = html_head + html_body + html_foot
-    write_to_file(cwd, 'video_index.html', html_body, 'w')
+    subdirs_basename = [os.path.basename(dir) for dir in subdirs]
+
+    env = jinja2.Environment(loader=jinja2.PackageLoader('jj2_templates'), autoescape=True)
+    template = env.get_template('category.html')
+
+    rendered = template.render(current_path=os.path.basename(cwd), subdirs=subdirs_basename)
+
+    print(subdirs)
+
+    write_to_file(cwd, 'video_index.html', rendered, 'w')
 
     if VideoFile.error_instance:
         current_time = pytz.utc.localize(datetime.utcnow()).astimezone().isoformat()

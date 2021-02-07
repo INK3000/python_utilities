@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+
+<html>
+   <head>
+   
+      <script type = "text/javascript">
+         function PlayVideo() {
+            var v = document.getElementsByTagName("video")[0];  
+            v.play(); 
+         }
+         function togglePlay() {
+            var video = document.getElementsByTagName("video")[0];
+            var btn = document.getElementById("play_btn");
+            if (video.paused || video.ended) {
+                video.play();
+                console.log(btn.value);
+                btn.value = 'Pause'
+                
+            } else {
+                video.pause();
+                console.log(btn.value);
+                btn.value = 'Play'
+            }
+        }
+      </script>
+   </head>
+   
+   <body>
+   
+      <form>         
+         <video width = "300" height = "200" src = "0. ООП_ Введение (проблема процедурного подхода).mp4">
+         Your browser does not support the video element.
+         </video>
+         <br />
+         <input id='play_btn' type = "button" onclick = "togglePlay();" value = "Play"/>
+      </form>
+      
+   </body>
+</html>
