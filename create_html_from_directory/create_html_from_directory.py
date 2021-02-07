@@ -112,15 +112,17 @@ def get_videofiles(path):
             if file.split('.')[-1] in video_format:
                 video = VideoFile(root, file, path)
                 temp_video_files.append(video)
+                print (f'{video.relpath} [{sec_to_hms(video.duration)}]')
+
 
         if temp_video_files:
-            if not parent_root:
+            if not parent_root :
                 parent_root = root
-            pprint(temp_video_files)
-            print()
+            
+            print(p.is_relative_to(parent_root))
+            print(parent_root)
 
-
-            if not p.is_relative_to(parent_root):
+            if not p.is_relative_to(parent_root) or parent_root == path:
                 # video_files_dict.update({parent_root: video_files})
                 # html_body += template.render(level=level, root=os.path.basename(parent_root), video_files=video_files)     
                 video_files = temp_video_files
@@ -147,6 +149,7 @@ def main():
     # rendered = template.render(current_path=os.path.basename(cwd), subdirs=subdirs_basename)
 
     video_files_dict = get_videofiles(cwd)
+    print(f'Total duration: {sec_to_hms(VideoFile.total_duration)}')
     html = template.render(os=os,
                                 video_files_dict=video_files_dict,
                                 path=os.path.basename(cwd),
