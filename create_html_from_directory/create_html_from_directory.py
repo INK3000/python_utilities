@@ -24,10 +24,11 @@ class VideoFile:
     total_count = 0
     instance = ()
     error_instance =()
-    def __init__(self, root, filename):
+    def __init__(self, root, filename, path):
         self.filename = filename
         self.root = root
         self.full_path = os.path.join(self.root, self.filename)
+        self.relpath = os.path.relpath(self.full_path, path)
         self.duration = self.get_duration()
         VideoFile.instance += (self,)
         VideoFile.total_duration += self.duration
@@ -97,9 +98,9 @@ def write_to_file(path,filename,text='', flag='w'):
         file.write(text)
         
 
-def fill_html_body(path, template):
-    html_body = ''
+def get_videofiles(path):
     video_files = []
+    video_files_dict = dict()
     parent_root = None
     video_format = list(('mp4', 'avi', 'mpg'))
     
@@ -109,7 +110,7 @@ def fill_html_body(path, template):
         temp_video_files = []
         for file in sorted(files):
             if file.split('.')[-1] in video_format:
-                video = VideoFile(root, file)
+                video = VideoFile(root, file, path)
                 temp_video_files.append(video)
 
         if temp_video_files:
@@ -120,14 +121,16 @@ def fill_html_body(path, template):
 
 
             if not p.is_relative_to(parent_root):
-                html_body += template.render(level=level, root=os.path.basename(parent_root), video_files=video_files)     
+                # video_files_dict.update({parent_root: video_files})
+                # html_body += template.render(level=level, root=os.path.basename(parent_root), video_files=video_files)     
                 video_files = temp_video_files
                 parent_root = root
             else:
                 video_files.extend(temp_video_files)
-    if video_files:
-        html_body += template.render(level=level, root=os.path.basename(parent_root), video_files=video_files)     
-    return html_body
+        if video_files:
+            video_files_dict.update({parent_root: video_files})
+            # html_body += template.render(level=level, root=os.path.basename(parent_root), video_files=video_files)     
+    return video_files_dict
 
 
 
@@ -143,8 +146,13 @@ def main():
 
     # rendered = template.render(current_path=os.path.basename(cwd), subdirs=subdirs_basename)
 
-    html_body = fill_html_body(cwd, template)
-    html = html_head + html_body + html_foot
+    video_files_dict = get_videofiles(cwd)
+    html = template.render(os=os,
+                                video_files_dict=video_files_dict,
+                                path=os.path.basename(cwd),
+                                total_duration=sec_to_hms(VideoFile.total_duration),
+                                hms=sec_to_hms)     
+  
 
     write_to_file(cwd, 'video_index.html', html, 'w')
 

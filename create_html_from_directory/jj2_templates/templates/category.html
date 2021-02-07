@@ -1,12 +1,26 @@
+{%extends 'base.html'%}
 
+
+{%block content%}
+ <div class="row py-3">
+     <div class='col-12'>
+        <h2>{{ path }}</h2>
+        <p>Общее время: {{ total_duration }}</p>    
+     </div>
+ </div>
+
+
+
+    {% for root in video_files_dict %}
         <div class="row py-3">
             <div class="col-12">
-                <h5> {{ root }}</h5>
-                {% for file in video_files %}
+                <h5> {{ os.path.basename(root) }}</h5>
+                {% for file in video_files_dict[root] %}
                 <div>
-                    <a class="px-{{level+3}}" target="_blank" href="{{file.full_path}}">{{file.filename}} </a>
+                    <a class="link-secondary px-5" target="_blank" href="{{file.relpath}}">{{file.filename}} <span class="badge rounded-pill bg-light text-dark">{{hms(file.duration)}}</span> </a> 
                 </div>
                 {% endfor %}
             </div>
         </div>
-        
+ {% endfor %}
+{%endblock%}
