@@ -1,3 +1,5 @@
+#!.venv/bin/python
+import os
 import cv2
 import time
 from pymediainfo import MediaInfo
@@ -42,12 +44,21 @@ def sec_to_hms(seconds):
     return '{:02d}:{:02d}:{:02d}'.format(h, m, s)
 
 
+
+def walk_and_print_path(path='.'):
+    for root, dirs, files in os.walk(path):
+        level = root.count(os.sep)
+        indent = ' ' * 4 * (level)
+        # print(level-1)
+        print('{}{}/'.format(indent, os.path.basename(root)))
+        subindent = ' ' * 4 * (level+1)
+        for f in files:
+            # print(level)
+            print('{}{}'.format(subindent, f))
+
+
 def main():
-    filename = '1. ООП_ Объекты и классы.mp4'
-    v = with_opencv(filename)
-    print(v)
-    v = with_mediainfo(filename)
-    print(v)
+    walk_and_print_path()
 
 
 if __name__ == '__main__':
