@@ -115,7 +115,9 @@ def fill_html_body(path, template):
         if temp_video_files:
             if not parent_root:
                 parent_root = root
-            print(temp_video_files, '\n\n')
+            pprint(temp_video_files)
+            print()
+
 
             if not p.is_relative_to(parent_root):
                 html_body += template.render(level=level, root=os.path.basename(parent_root), video_files=video_files)     
