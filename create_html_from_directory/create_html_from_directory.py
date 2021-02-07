@@ -84,7 +84,7 @@ def get_videofiles(path):
     video_format = list(('mp4', 'avi', 'mpg'))
     
     for root, directory, files in os.walk(path):
-        p = pathlib.PurePath(root)
+        p = pathlib.PurePath(root) # для последующей проверки на родителя
         level = root.replace(path, '').count(os.sep)
         temp_video_files = []
         for file in sorted(files):
@@ -98,7 +98,7 @@ def get_videofiles(path):
             if not parent_root :
                 parent_root = root
 
-            if not p.is_relative_to(parent_root) or parent_root == path:
+            if not p.is_relative_to(parent_root) or parent_root == path: # проверка на родителя
                 video_files = temp_video_files
                 parent_root = root
             else:
