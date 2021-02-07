@@ -118,9 +118,7 @@ def get_videofiles(path):
         if temp_video_files:
             if not parent_root :
                 parent_root = root
-            
-            print(p.is_relative_to(parent_root))
-            print(parent_root)
+
 
             if not p.is_relative_to(parent_root) or parent_root == path:
                 # video_files_dict.update({parent_root: video_files})
