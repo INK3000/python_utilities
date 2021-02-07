@@ -8,6 +8,7 @@ import time
 from pprint import pprint
 import jinja2
 import jj2_templates
+import pathlib
 def stopwatch(func):
     def wrapper (*args, **kwargs):
         start = time.perf_counter()
@@ -64,11 +65,13 @@ html_head = """
     <title>Видеофайлы из директории</title>
 </head>
 <body>
+<div class="container">
 """
 
 
 
 html_foot = """
+</div>
 </body>
 </html>
 """ 
@@ -94,40 +97,34 @@ def write_to_file(path,filename,text='', flag='w'):
         file.write(text)
         
 
-def fill_html_body(path_list):
+def fill_html_body(path, template):
     html_body = ''
+    video_files = []
+    parent_root = None
     video_format = list(('mp4', 'avi', 'mpg'))
-    for path in path_list:
-        for root, directory, files in os.walk(path):
-            level = root.replace(path, '').count(os.sep)
-            root_name = os.path.basename(root)
+    
+    for root, directory, files in os.walk(path):
+        p = pathlib.PurePath(root)
+        level = root.replace(path, '').count(os.sep)
+        temp_video_files = []
+        for file in sorted(files):
+            if file.split('.')[-1] in video_format:
+                video = VideoFile(root, file)
+                temp_video_files.append(video)
 
-            for file in sorted(files):
-                if file.split('.')[-1] in video_format:
-                    video = VideoFile(root, file)
-                    # print(video)
-                    html_body += str(video.filename)
-    #                 videos_html += f'''<div>
-    #                             <a class="px-{level+2}" target="_blank" href="{video.full_path}">{video.filename} [{sec_to_hms(video.duration)}]</a>
-    #                             </div>'''
-    #         if not founded_files[root]:
-    #             del founded_files[root]
-    #         if videos_html:
-    #             html_body += videos_html
+        if temp_video_files:
+            if not parent_root:
+                parent_root = root
+            print(temp_video_files, '\n\n')
 
-    #     if html_body:    
-    #         html_body = f'''<div class="container">
-    #                         <div class="row py-3">
-    #                         <div class="col-12 px-{level}">
-    #                         <p>{root_name}</p>''' + html_body + '</div></div></div>'
-
-    # #добавить общее время в конце страницы        
-    # html_body = f"""<div class="container">
-    #                 <div class="row py-3">
-    #                    <div class="col">
-    #                 <h3>{sec_to_hms(VideoFile.total_duration)}</h3>
-    #                 </div></div></div>
-    #             """ + html_body
+            if not p.is_relative_to(parent_root):
+                html_body += template.render(level=level, root=os.path.basename(parent_root), video_files=video_files)     
+                video_files = temp_video_files
+                parent_root = root
+            else:
+                video_files.extend(temp_video_files)
+    if video_files:
+        html_body += template.render(level=level, root=os.path.basename(parent_root), video_files=video_files)     
     return html_body
 
 
@@ -136,17 +133,18 @@ def fill_html_body(path_list):
 def main():
 
     cwd = os.getcwd()
-    subdirs = [entry.path for entry in os.scandir(cwd)]
-    subdirs_basename = [os.path.basename(dir) for dir in subdirs]
+    # subdirs = [entry.path for entry in os.scandir(cwd)]
+    # subdirs_basename = [os.path.basename(dir) for dir in subdirs]
 
     env = jinja2.Environment(loader=jinja2.PackageLoader('jj2_templates'), autoescape=True)
     template = env.get_template('category.html')
 
-    rendered = template.render(current_path=os.path.basename(cwd), subdirs=subdirs_basename)
+    # rendered = template.render(current_path=os.path.basename(cwd), subdirs=subdirs_basename)
 
-    print(subdirs)
+    html_body = fill_html_body(cwd, template)
+    html = html_head + html_body + html_foot
 
-    write_to_file(cwd, 'video_index.html', rendered, 'w')
+    write_to_file(cwd, 'video_index.html', html, 'w')
 
     if VideoFile.error_instance:
         current_time = pytz.utc.localize(datetime.utcnow()).astimezone().isoformat()
