@@ -81,31 +81,32 @@ def get_videofiles(path):
     
     video_files_dict = dict()
     video_format = list(('mp4', 'avi', 'mpg'))
-
-
     root, directories, files = next(os.walk(path))
-    
+
     if files:
         video_files = []
         for file in sorted(files):
             if file.split('.')[-1] in video_format:
                 video = VideoFile(root, file, path)
-                print(f'{video.filename}')
+                print(f'{video.filename} [{root}]')
                 video_files.append(video)
         if video_files:
+            
             video_files_dict.update({root: video_files})
 
     if directories:
-        video_files = []
+        
         for directory in sorted(directories):
+            video_files = []
             for root, dirs, files in os.walk(directory):
                 for file in sorted(files):
                     if file.split('.')[-1] in video_format:
                         video = VideoFile(root, file, path)
-                        print(f'{video.filename}')
+                        print(f'{video.filename} [{directory}]')
                         video_files.append(video)
                     if video_files:
                         video_files_dict.update({directory: video_files})
+
 
 
 
