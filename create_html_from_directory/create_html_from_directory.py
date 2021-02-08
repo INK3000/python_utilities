@@ -78,33 +78,59 @@ def write_to_file(path,filename,text='', flag='w'):
         
 
 def get_videofiles(path):
-    video_files = []
-    video_files_dict = dict()
-    parent_root = None
-    video_format = list(('mp4', 'avi', 'mpg'))
     
-    for root, directory, files in os.walk(path):
-        p = pathlib.PurePath(root) # для последующей проверки на родителя
-        level = root.replace(path, '').count(os.sep)
-        temp_video_files = []
+    video_files_dict = dict()
+    video_format = list(('mp4', 'avi', 'mpg'))
+
+
+    root, directories, files = next(os.walk(path))
+    
+    if files:
+        video_files = []
         for file in sorted(files):
             if file.split('.')[-1] in video_format:
                 video = VideoFile(root, file, path)
-                temp_video_files.append(video)
-                print (f'{video.relpath} [{sec_to_hms(video.duration)}]')
-
-
-        if temp_video_files:
-            if not parent_root :
-                parent_root = root
-
-            if not p.is_relative_to(parent_root) or parent_root == path: # проверка на родителя
-                video_files = temp_video_files
-                parent_root = root
-            else:
-                video_files.extend(temp_video_files)
+                video_files.append(video)
         if video_files:
-            video_files_dict.update({parent_root: video_files})
+            video_files_dict.update({root: video_files})
+
+    if directories:
+        video_files = []
+        for directory in sorted(directories):
+            for root, dirs, files in os.walk(directory):
+                for file in sorted(files):
+                    if file.split('.')[-1] in video_format:
+                        video = VideoFile(root, file, path)
+                        video_files.append(video)
+                    if video_files:
+                        video_files_dict.update({directory: video_files})
+
+
+
+
+    
+    # for root, directory, files in os.walk(path):
+    #     p = pathlib.PurePath(root) # для последующей проверки на родителя
+    #     level = root.replace(path, '').count(os.sep)
+    #     temp_video_files = []
+    #     for file in sorted(files):
+    #         if file.split('.')[-1] in video_format:
+    #             video = VideoFile(root, file, path)
+    #             temp_video_files.append(video)
+    #             print (f'{video.relpath} [{sec_to_hms(video.duration)}]')
+
+
+    #     if temp_video_files:
+    #         if not parent_root :
+    #             parent_root = root
+    #         print(p.is_relative_to(parent_root))    
+    #         if not p.is_relative_to(parent_root) or parent_root == path: # проверка на родителя
+    #             video_files = temp_video_files
+    #             parent_root = root
+    #         else:
+    #             video_files.extend(temp_video_files)
+    #     if video_files:
+    #         video_files_dict.update({parent_root: video_files})
     return video_files_dict
 
 
@@ -117,6 +143,7 @@ def main():
     template = env.get_template('category.html')
 
     video_files_dict = get_videofiles(cwd)
+    print(video_files_dict)
     print(f'Total duration: {sec_to_hms(VideoFile.total_duration)}')
     html = template.render(os=os,
                                 video_files_dict=video_files_dict,
