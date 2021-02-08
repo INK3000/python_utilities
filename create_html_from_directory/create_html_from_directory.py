@@ -90,6 +90,7 @@ def get_videofiles(path):
         for file in sorted(files):
             if file.split('.')[-1] in video_format:
                 video = VideoFile(root, file, path)
+                print(f'{video.filename}')
                 video_files.append(video)
         if video_files:
             video_files_dict.update({root: video_files})
@@ -101,6 +102,7 @@ def get_videofiles(path):
                 for file in sorted(files):
                     if file.split('.')[-1] in video_format:
                         video = VideoFile(root, file, path)
+                        print(f'{video.filename}')
                         video_files.append(video)
                     if video_files:
                         video_files_dict.update({directory: video_files})
@@ -143,7 +145,6 @@ def main():
     template = env.get_template('category.html')
 
     video_files_dict = get_videofiles(cwd)
-    print(video_files_dict)
     print(f'Total duration: {sec_to_hms(VideoFile.total_duration)}')
     html = template.render(os=os,
                                 video_files_dict=video_files_dict,
