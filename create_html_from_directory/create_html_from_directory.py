@@ -76,35 +76,57 @@ def write_to_file(path,filename,text='', flag='w'):
     with open(full_path, flag) as file:
         file.write(text)
         
-
-def get_videofiles(path):
+def get_videos(root, files, path):
+    video_dict = dict()
     video_files = []
-    video_files_dict = dict()
-    parent_root = None
     video_format = list(('mp4', 'avi', 'mpg'))
-    
-    for root, directory, files in os.walk(path):
-        p = pathlib.PurePath(root) # для последующей проверки на родителя
-        level = root.replace(path, '').count(os.sep)
-        temp_video_files = []
-        for file in sorted(files):
-            if file.split('.')[-1] in video_format:
-                video = VideoFile(root, file, path)
-                temp_video_files.append(video)
-                print (f'{video.relpath} [{sec_to_hms(video.duration)}]')
 
-
-        if temp_video_files:
-            if not parent_root :
-                parent_root = root
-
-            if not p.is_relative_to(parent_root) or parent_root == path: # проверка на родителя
-                video_files = temp_video_files
-                parent_root = root
-            else:
-                video_files.extend(temp_video_files)
+    for file in sorted(files):
+        if file.split('.')[-1] in video_format:
+            video = VideoFile(root, file, path)
+            video_files.append(video)
         if video_files:
-            video_files_dict.update({parent_root: video_files})
+            video_files_dict.update({root: video_files})
+    return video_dict
+
+
+def get_video_path(path):
+    
+    video_files_dict = dict()
+
+    root, directories, files = next(os.walk(path))
+    
+    if files:
+        video_files_dict.update(get_videos(root,files, path))
+
+    if directories:
+        for directory in sorted(directories):
+            for root, dirs, files in os.walk(directory):
+                video_files_dict.update(get_videos(directory, files, path))
+
+    
+    # for root, directory, files in os.walk(path):
+    #     p = pathlib.PurePath(root) # для последующей проверки на родителя
+    #     level = root.replace(path, '').count(os.sep)
+    #     temp_video_files = []
+    #     for file in sorted(files):
+    #         if file.split('.')[-1] in video_format:
+    #             video = VideoFile(root, file, path)
+    #             temp_video_files.append(video)
+    #             print (f'{video.relpath} [{sec_to_hms(video.duration)}]')
+
+
+    #     if temp_video_files:
+    #         if not parent_root :
+    #             parent_root = root
+    #         print(p.is_relative_to(parent_root))    
+    #         if not p.is_relative_to(parent_root) or parent_root == path: # проверка на родителя
+    #             video_files = temp_video_files
+    #             parent_root = root
+    #         else:
+    #             video_files.extend(temp_video_files)
+    #     if video_files:
+    #         video_files_dict.update({parent_root: video_files})
     return video_files_dict
 
 
@@ -116,7 +138,8 @@ def main():
     env = jinja2.Environment(loader=jinja2.PackageLoader('jj2_templates'), autoescape=True)
     template = env.get_template('category.html')
 
-    video_files_dict = get_videofiles(cwd)
+    video_files_dict = get_video_path(cwd)
+    print(video_files_dict)
     print(f'Total duration: {sec_to_hms(VideoFile.total_duration)}')
     html = template.render(os=os,
                                 video_files_dict=video_files_dict,
