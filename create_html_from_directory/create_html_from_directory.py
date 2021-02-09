@@ -9,6 +9,8 @@ from pprint import pprint
 import jinja2
 import jj2_templates
 import pathlib
+
+
 def stopwatch(func):
     def wrapper (*args, **kwargs):
         start = time.perf_counter()
@@ -24,6 +26,7 @@ class VideoFile:
     total_count = 0
     instance = ()
     error_instance =()
+    
     def __init__(self, root, filename, path):
         self.filename = filename
         self.root = root
@@ -75,91 +78,67 @@ def write_to_file(path,filename,text='', flag='w'):
     full_path = os.path.join(path, filename)
     with open(full_path, flag) as file:
         file.write(text)
-        
 
-def get_videofiles(path):
-    
-    video_files_dict = dict()
+
+def create_videos_dict(path, root, directory_key, files):
     video_format = list(('mp4', 'avi', 'mpg'))
-    root, directories, files = next(os.walk(path))
+    video_files = []
+    video_files_dict = dict()
 
-    if files:
-        video_files = []
-        for file in sorted(files):
-            if file.split('.')[-1] in video_format:
-                video = VideoFile(root, file, path)
-                print(f'{video.filename} [{root}]')
-                video_files.append(video)
-            if video_files:
-                video_files_dict.update({root: video_files})
-
-    if directories:
-        
-        for directory in sorted(directories):
-            video_files = []
-            for root, dirs, files in os.walk(directory):
-                for file in sorted(files):
-                    if file.split('.')[-1] in video_format:
-                        video = VideoFile(root, file, path)
-                        print(f'{video.filename} [{directory}]')
-                        video_files.append(video)
-                    if video_files:
-                        video_files_dict.update({directory: video_files})
+    for file in sorted(files):
+        if file.split('.')[-1] in video_format:
+            video = VideoFile(root, file, path)
+            print(f'{video.filename} [{root}]')
+            video_files.append(video)
+        if video_files:
+            video_files_dict.update({directory_key: video_files})
+    return video_files_dict       
 
 
-
-
-
+def get_video_files_to_dict(path):
     
-    # for root, directory, files in os.walk(path):
-    #     p = pathlib.PurePath(root) # для последующей проверки на родителя
-    #     level = root.replace(path, '').count(os.sep)
-    #     temp_video_files = []
-    #     for file in sorted(files):
-    #         if file.split('.')[-1] in video_format:
-    #             video = VideoFile(root, file, path)
-    #             temp_video_files.append(video)
-    #             print (f'{video.relpath} [{sec_to_hms(video.duration)}]')
+    root, directories, files = next(os.walk(path)) #for get root_lvl directories and root_lvl files
+    video_files_dict = dict()
 
 
-    #     if temp_video_files:
-    #         if not parent_root :
-    #             parent_root = root
-    #         print(p.is_relative_to(parent_root))    
-    #         if not p.is_relative_to(parent_root) or parent_root == path: # проверка на родителя
-    #             video_files = temp_video_files
-    #             parent_root = root
-    #         else:
-    #             video_files.extend(temp_video_files)
-    #     if video_files:
-    #         video_files_dict.update({parent_root: video_files})
+    if files: # in root
+        video_files_dict.update(create_videos_dict(path=path,
+                                              files=files,
+                                              directory_key=root,
+                                              root=root))
+    if directories: # in root
+        for directory in sorted(directories):
+            for root, dirs, files in os.walk(directory):
+                video_files_dict.update(create_videos_dict(path=path,
+                                                           files=files,
+                                                           directory_key=directory,
+                                                           root=root))
+
     return video_files_dict
 
 
 
 @stopwatch
 def main():
-
-    cwd = os.getcwd()
+    current_directory = os.getcwd()
+    video_files_dict = get_video_files_to_dict(path=current_directory)
+    print(f'Total duration: {sec_to_hms(VideoFile.total_duration)}')
+    
     env = jinja2.Environment(loader=jinja2.PackageLoader('jj2_templates'), autoescape=True)
     template = env.get_template('category.html')
-
-    video_files_dict = get_videofiles(cwd)
-    print(f'Total duration: {sec_to_hms(VideoFile.total_duration)}')
     html = template.render(os=os,
-                                video_files_dict=video_files_dict,
-                                path=os.path.basename(cwd),
-                                total_duration=sec_to_hms(VideoFile.total_duration),
-                                hms=sec_to_hms)     
-  
+                           video_files_dict=video_files_dict,
+                           path=os.path.basename(current_directory),
+                           total_duration=sec_to_hms(VideoFile.total_duration),
+                           hms=sec_to_hms)     
 
-    write_to_file(cwd, 'video_index.html', html, 'w')
+    write_to_file(current_directory, 'video_index.html', html, 'w')
 
     if VideoFile.error_instance:
         current_time = pytz.utc.localize(datetime.utcnow()).astimezone().isoformat()
-        write_to_file(cwd, 'error.txt', current_time+'\n','w')
+        write_to_file(current_directory, 'error.txt', current_time+'\n','w')
         for file in VideoFile.error_instance:
-            write_to_file(cwd, 'error.txt', str(file)+'\n', 'a')
+            write_to_file(current_directory, 'error.txt', str(file)+'\n', 'a')
 
    
 
