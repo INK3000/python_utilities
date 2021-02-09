@@ -79,7 +79,6 @@ def write_to_file(path,filename,text='', flag='w'):
     with open(full_path, flag) as file:
         file.write(text)
 
-
 def create_videos_dict(path, root, directory_key, files):
     video_format = list(('mp4', 'avi', 'mpg'))
     video_files = []
@@ -113,7 +112,6 @@ def get_video_files_to_dict(path):
                                                            files=files,
                                                            directory_key=directory,
                                                            root=root))
-
     return video_files_dict
 
 
