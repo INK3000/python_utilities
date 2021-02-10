@@ -20,42 +20,59 @@ def stopwatch(func):
 
 
 class VideoFile:
-    total_duration = 0
-    total_count = 0
-    instance = ()
-    error_instance = ()
-    video_files_dict = dict()
+    __total_duration = 0
+    __total_count = 0
+    __instance = ()
+    __error_instance = ()
+    __video_files_dict = dict()
 
     def __init__(self, path, root, directory_key, filename):
         self.filename = filename
         self.root = root
         self.full_path = os.path.join(self.root, self.filename)
         self.relpath = os.path.relpath(self.full_path, path)
-        self.duration = self.get_duration()
+        self.duration = 0
+        # MediaInfo ver.
+        try:
+            media_info = MediaInfo.parse(self.full_path)
+            for track in media_info.tracks:
+                if track.track_type == "Video":
+                    self.duration = int(track.duration * 0.001)
+        except Exception as e:
+            print(e)
+
+
         if not VideoFile.video_files_dict.get(directory_key):
             VideoFile.video_files_dict[directory_key] = list()
-        VideoFile.video_files_dict[directory_key].append(self)
-        VideoFile.instance += (self,)
-        VideoFile.total_duration += self.duration
-        VideoFile.total_count += 1
+        VideoFile.__video_files_dict[directory_key].append(self)
+        VideoFile.__instance += (self,)
+        VideoFile.__total_duration += self.duration
+        VideoFile.__total_count += 1
 
-    def get_duration(self):
-        result = 0
+    @classmethod
+    @property
+    def total_duration(cls):
+        return cls.__total_duration
 
-        # MediaInfo ver.
-        media_info = MediaInfo.parse(self.full_path)
-        for track in media_info.tracks:
-            if track.track_type == "Video":
-                result = int(track.duration * 0.001)
+    @classmethod
+    @property
+    def total_count(cls):
+        return cls.__total_count
 
-        # opencv ver.
-        # need import cv2 (pip install opencv-python)
-        # video = cv2.VideoCapture(self.full_path)
-        # frame_count = video.get(cv2.CAP_PROP_FRAME_COUNT)
-        # video.set(cv2.CAP_PROP_POS_FRAMES , frame_count)
-        # result = int(video.get(cv2.CAP_PROP_POS_MSEC)*0.001)
+    @classmethod
+    @property
+    def instance(cls):
+        return cls.__instance
 
-        return result
+    @classmethod
+    @property
+    def error_instance(cls):
+        return cls.__error_instance
+
+    @classmethod
+    @property
+    def video_files_dict(cls):
+        return cls.__video_files_dict
 
     def __repr__(self):
         return 'File "{}" - Duration: {}'.format(self.filename, sec_to_hms(self.duration))
@@ -116,7 +133,7 @@ def get_video_files_to_dict(path):
                                    files=files,
                                    directory_key=directory,
                                    root=root)
-    return 
+
 
 
 @stopwatch
