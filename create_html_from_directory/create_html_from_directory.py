@@ -24,13 +24,17 @@ class VideoFile:
     total_count = 0
     instance = ()
     error_instance = ()
+    video_files_dict = dict()
 
-    def __init__(self, root, filename, path):
+    def __init__(self, path, root, directory_key, filename):
         self.filename = filename
         self.root = root
         self.full_path = os.path.join(self.root, self.filename)
         self.relpath = os.path.relpath(self.full_path, path)
         self.duration = self.get_duration()
+        if not VideoFile.video_files_dict.get(directory_key):
+            VideoFile.video_files_dict[directory_key] = list()
+        VideoFile.video_files_dict[directory_key].append(self)
         VideoFile.instance += (self,)
         VideoFile.total_duration += self.duration
         VideoFile.total_count += 1
@@ -85,50 +89,46 @@ def write_to_file(path, filename, text='', flag='w'):
         file.write(text)
 
 
-def create_videos_dict(path, root, directory_key, files):
+def create_video(path, root, directory_key, files):
     video_format = list(('mp4', 'avi', 'mpg'))
     video_files = []
     video_files_dict = dict()
 
     for file in sorted(files):
         if file.split('.')[-1] in video_format:
-            video = VideoFile(root, file, path)
+            video = VideoFile(path, root, directory_key, file)
             print(f'{video.filename} [{root}]')
-            video_files.append(video)
-        if video_files:
-            video_files_dict.update({directory_key: video_files})
-    return video_files_dict
+    
 
 
 def get_video_files_to_dict(path):
     root, directories, files = next(os.walk(path))  # for get root_lvl directories and root_lvl files
-    video_files_dict = dict()
 
     if files:  # in root
-        video_files_dict.update(create_videos_dict(path=path,
-                                                   files=files,
-                                                   directory_key=root,
-                                                   root=root))
+        create_video(path=path,
+                           files=files,
+                           directory_key=root,
+                           root=root)
     if directories:  # in root
         for directory in sorted(directories):
             for root, dirs, files in os.walk(directory):
-                video_files_dict.update(create_videos_dict(path=path,
-                                                           files=files,
-                                                           directory_key=directory,
-                                                           root=root))
-    return video_files_dict
+                create_video(path=path,
+                                   files=files,
+                                   directory_key=directory,
+                                   root=root)
+    return 
 
 
 @stopwatch
 def main():
     current_directory = os.getcwd()
-    video_files_dict = get_video_files_to_dict(path=current_directory)
+    get_video_files_to_dict(path=current_directory)
     print(f'Total duration: {sec_to_hms(VideoFile.total_duration)}')
 
     env = jinja2.Environment(loader=jinja2.PackageLoader('jj2_templates'), autoescape=True)
     template = env.get_template('category.html')
     html = template.render(os=os,
-                           video_files_dict=video_files_dict,
+                           video_files_dict=VideoFile.video_files_dict,
                            path=os.path.basename(current_directory),
                            total_duration=sec_to_hms(VideoFile.total_duration),
                            hms=sec_to_hms)
