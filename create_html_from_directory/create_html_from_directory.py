@@ -5,10 +5,9 @@ from datetime import datetime
 import pytz
 from pymediainfo import MediaInfo
 import time
-from pprint import pprint
 import jinja2
 import jj2_templates
-import pathlib
+
 
 
 def stopwatch(func):
@@ -39,12 +38,22 @@ class VideoFile:
 
 
     def get_duration(self):
-        full_path = os.path.join(self.root, self.filename)
         result = 0
-        media_info = MediaInfo.parse(full_path)
+       
+        # MediaInfo ver.
+        media_info = MediaInfo.parse(self.full_path)
         for track in media_info.tracks:
             if track.track_type == "Video":
                 result = int(track.duration*0.001)
+
+        # opencv ver.
+        # need import cv2 (pip install opencv-python)
+        # video = cv2.VideoCapture(self.full_path)
+        # frame_count = video.get(cv2.CAP_PROP_FRAME_COUNT)
+        # video.set(cv2.CAP_PROP_POS_FRAMES , frame_count)
+        # result = int(video.get(cv2.CAP_PROP_POS_MSEC)*0.001)
+
+
         return result
 
 
