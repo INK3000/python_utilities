@@ -20,11 +20,11 @@ def stopwatch(func):
 
 
 class VideoFile:
-    __total_duration = 0
-    __total_count = 0
-    __instance = ()
-    __error_instance = ()
-    __video_files_dict = dict()
+    _total_duration = None
+    _total_count = None
+    _instance = ()
+    _error_instance = ()
+    _video_files_dict = dict()
 
     def __init__(self, path, root, directory_key, filename):
         self.filename = filename
@@ -32,6 +32,7 @@ class VideoFile:
         self.full_path = os.path.join(self.root, self.filename)
         self.relpath = os.path.relpath(self.full_path, path)
         self.duration = 0
+
         # MediaInfo ver.
         try:
             media_info = MediaInfo.parse(self.full_path)
@@ -41,38 +42,43 @@ class VideoFile:
         except Exception as e:
             print(e)
 
-
         if not VideoFile.video_files_dict.get(directory_key):
             VideoFile.video_files_dict[directory_key] = list()
-        VideoFile.__video_files_dict[directory_key].append(self)
-        VideoFile.__instance += (self,)
-        VideoFile.__total_duration += self.duration
-        VideoFile.__total_count += 1
+        VideoFile._video_files_dict[directory_key].append(self)
+
+        VideoFile._instance += (self,)
+        VideoFile._total_duration = None
+        VideoFile._total_count = None
+
 
     @classmethod
     @property
     def total_duration(cls):
-        return cls.__total_duration
+        if not cls._total_duration:
+            cls._total_duration = sum(cls._instance)
+        return cls._total_duration
 
     @classmethod
     @property
     def total_count(cls):
-        return cls.__total_count
+        if not cls._total_count:
+            cls._total_count = len(cls._instance)
+        return cls._total_count
 
     @classmethod
     @property
     def instance(cls):
-        return cls.__instance
+        return cls._instance
 
     @classmethod
     @property
     def error_instance(cls):
-        return cls.__error_instance
+        return cls._error_instance
 
     @classmethod
     @property
     def video_files_dict(cls):
-        return cls.__video_files_dict
+        return cls._video_files_dict
 
     def __repr__(self):
         return 'File "{}" - Duration: {}'.format(self.filename, sec_to_hms(self.duration))
@@ -83,21 +89,27 @@ class VideoFile:
     def __len__(self):
         return self.duration
 
+    def __add__(self, object):
+        if isinstance(object, VideoFile):
+            result = self.duration + object.duration
+        elif isinstance(object, (int,float)):
+            result = self.duration + object
+        else:
+            result = self.duration
+        return result
+
+    def __radd__(self, object):
+        if object == 0:
+            return self
+        else:
+            return self.__add__(other)
+
 
 def sec_to_hms(seconds):
     h = seconds // 3600
     m = (seconds % 3600) // 60
     s = seconds % 60
     return '{:02d}:{:02d}:{:02d}'.format(h, m, s)
-
-
-def create_directory(path, name):
-    directory_path = os.path.join(path, name)
-    try:
-        os.mkdir(directory_path)
-    except FileExistsError:
-        print(f'Директория {directory_path} уже существует.\nПродолжаю выполнять задачу...')
-    return directory_path
 
 
 def write_to_file(path, filename, text='', flag='w'):
@@ -117,7 +129,6 @@ def create_video(path, root, directory_key, files):
             print(f'{video.filename} [{root}]')
     
 
-
 def get_video_files_to_dict(path):
     root, directories, files = next(os.walk(path))  # for get root_lvl directories and root_lvl files
 
@@ -133,7 +144,6 @@ def get_video_files_to_dict(path):
                                    files=files,
                                    directory_key=directory,
                                    root=root)
-
 
 
 @stopwatch
