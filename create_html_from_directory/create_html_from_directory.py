@@ -6,6 +6,7 @@ from pymediainfo import MediaInfo
 import time
 import jinja2
 import jj2_templates
+import re
 
 
 
@@ -93,6 +94,16 @@ class VideoFile:
         else:
             return self.__add__(object)
 
+def format_nums(string):
+    result = string
+    nums = re.findall(r'\d{1,3}', string.split()[0])
+    if nums:
+        prefix = f'{int(nums[0]):03d}'
+        suffix = ' '.join(string.split()[1:])
+        result = f'{prefix} {suffix}'
+    return result
+
+
 
 def sec_to_hms(seconds):
     h = seconds // 3600
@@ -109,10 +120,7 @@ def write_to_file(path, filename, text='', flag='w'):
 
 def create_video(files):
     video_format = list(('mp4', 'avi', 'mpg'))
-    video_files = []
-    video_files_dict = dict()
-
-    for file in sorted(files):
+    for file in sorted(files, key=format_nums):
         if file.split('.')[-1] in video_format:
             video = VideoFile(file)
             print(f'{video.filename} [{VideoFile.root}]')
@@ -127,7 +135,7 @@ def get_video_files_to_dict(path):
         VideoFile.path = path
         create_video(files)
     if directories:  # in root
-        for directory in sorted(directories):
+        for directory in sorted(directories, key=format_nums):
             for root, dirs, files in os.walk(directory):
                 VideoFile.root = root
                 VideoFile.directory_key = directory
