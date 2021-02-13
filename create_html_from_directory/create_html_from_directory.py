@@ -8,6 +8,7 @@ import jinja2
 import jj2_templates
 
 
+
 def stopwatch(func):
     def wrapper(*args, **kwargs):
         start = time.perf_counter()
@@ -20,17 +21,18 @@ def stopwatch(func):
 
 
 class VideoFile:
+    path = root = directory_key = None
     _total_duration = None
     _total_count = None
-    _instance = ()
-    _error_instance = ()
-    _video_files_dict = dict()
+    instance = ()
+    error_instance = ()
+    video_files_dict = dict()
 
-    def __init__(self, path, root, directory_key, filename):
+    def __init__(self, filename):
         self.filename = filename
-        self.root = root
+        self.root = VideoFile.root
         self.full_path = os.path.join(self.root, self.filename)
-        self.relpath = os.path.relpath(self.full_path, path)
+        self.relpath = os.path.relpath(self.full_path, VideoFile.path)
         self.duration = 0
 
         # MediaInfo ver.
@@ -42,11 +44,11 @@ class VideoFile:
         except Exception as e:
             print(e)
 
-        if not VideoFile.video_files_dict.get(directory_key):
-            VideoFile.video_files_dict[directory_key] = list()
-        VideoFile._video_files_dict[directory_key].append(self)
+        if not VideoFile.video_files_dict.get(VideoFile.directory_key):
+            VideoFile.video_files_dict[VideoFile.directory_key] = list()
+        VideoFile.video_files_dict[VideoFile.directory_key].append(self)
 
-        VideoFile._instance += (self,)
+        VideoFile.instance += (self,)
         VideoFile._total_duration = None
         VideoFile._total_count = None
 
@@ -55,30 +57,17 @@ class VideoFile:
     @property
     def total_duration(cls):
         if not cls._total_duration:
-            cls._total_duration = sum(cls._instance)
+            cls._total_duration = sum(cls.instance)
         return cls._total_duration
 
     @classmethod
     @property
     def total_count(cls):
         if not cls._total_count:
-            cls._total_count = len(cls._instance)
+            cls._total_count = len(cls.instance)
         return cls._total_count
 
-    @classmethod
-    @property
-    def instance(cls):
-        return cls._instance
 
-    @classmethod
-    @property
-    def error_instance(cls):
-        return cls._error_instance
-
-    @classmethod
-    @property
-    def video_files_dict(cls):
-        return cls._video_files_dict
 
     def __repr__(self):
         return 'File "{}" - Duration: {}'.format(self.filename, sec_to_hms(self.duration))
@@ -102,7 +91,7 @@ class VideoFile:
         if object == 0:
             return self
         else:
-            return self.__add__(other)
+            return self.__add__(object)
 
 
 def sec_to_hms(seconds):
@@ -118,32 +107,32 @@ def write_to_file(path, filename, text='', flag='w'):
         file.write(text)
 
 
-def create_video(path, root, directory_key, files):
+def create_video(files):
     video_format = list(('mp4', 'avi', 'mpg'))
     video_files = []
     video_files_dict = dict()
 
     for file in sorted(files):
         if file.split('.')[-1] in video_format:
-            video = VideoFile(path, root, directory_key, file)
-            print(f'{video.filename} [{root}]')
+            video = VideoFile(file)
+            print(f'{video.filename} [{VideoFile.root}]')
     
 
 def get_video_files_to_dict(path):
     root, directories, files = next(os.walk(path))  # for get root_lvl directories and root_lvl files
 
     if files:  # in root
-        create_video(path=path,
-                           files=files,
-                           directory_key=root,
-                           root=root)
+        VideoFile.root = root
+        VideoFile.directory_key = root
+        VideoFile.path = path
+        create_video(files)
     if directories:  # in root
         for directory in sorted(directories):
             for root, dirs, files in os.walk(directory):
-                create_video(path=path,
-                                   files=files,
-                                   directory_key=directory,
-                                   root=root)
+                VideoFile.root = root
+                VideoFile.directory_key = directory
+                VideoFile.path = path
+                create_video(files)
 
 
 @stopwatch
