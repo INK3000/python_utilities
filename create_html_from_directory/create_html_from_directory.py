@@ -96,11 +96,14 @@ class VideoFile:
 
 def format_nums(string):
     result = string
-    nums = re.findall(r'\d{1,3}', string.split()[0])
-    if nums:
-        prefix = f'{int(nums[0]):03d}'
-        suffix = ' '.join(string.split()[1:])
-        result = f'{prefix} {suffix}'
+
+    r = re.compile(r'^[0-9]+')
+    s = r.search(string)
+    if s:
+        num = s.group(0)
+        fnum = f'{int(num):03d}'
+        result = string.replace(num, fnum, 1)
+
     return result
 
 
@@ -155,7 +158,8 @@ def main():
                            video_files_dict=VideoFile.video_files_dict,
                            path=os.path.basename(current_directory),
                            total_duration=sec_to_hms(VideoFile.total_duration),
-                           hms=sec_to_hms)
+                           hms=sec_to_hms,
+                           sum=sum)
 
     write_to_file(current_directory, 'video_index.html', html, 'w')
 
