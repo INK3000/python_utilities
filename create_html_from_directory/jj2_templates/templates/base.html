@@ -10,8 +10,37 @@
     
 </head>
 <body>
+<!-- Modal -->
+<div class="modal fade " id="ModalPlayer" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="callout">
+                                <h5 class="modal-title"></h5>
+                                <div class="responsive-embed widescreen">
+
+                                    <video controls class=" img-fluid" id="video-player" src = "">
+                                        Your browser does not support the video element.
+                                    </video>
+                                </div>
+                                <!-- <a id="play_btn" class="button small" href="#" onclick = "togglePlay();">Play</a> -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
 
 
+        </div>
+    </div>
+</div>
+
+<!-- Video playlist -->
     <div class="container">
 
         {%block content%}
@@ -20,6 +49,39 @@
     </div>
 
     
+    
+<!-- Open link in modal  -->
+
+<script type="text/javascript">
+
+    let video = document.getElementById('video-player');
+    let exampleModal = document.getElementById('ModalPlayer');
+    let button;
+    let recipient;
+    let modalTitle;
+    video.addEventListener('pause', saveCurrentTime);
+
+    exampleModal.addEventListener('show.bs.modal', function (event) {
+        button = event.relatedTarget;
+        recipient = button.getAttribute('data-bs-file');
+        modalTitle = exampleModal.querySelector('.modal-title');
+        video.defaultPlaybackRate = 1.5;
+        video.src = recipient;
+        video.play();
+        video.currentTime = Number(window.localStorage.getItem(video.src));
+        modalTitle.textContent = recipient;
+
+    });    
+
+    exampleModal.addEventListener('hide.bs.modal', function (event) {
+        video.pause();
+    });
+
+    function saveCurrentTime(){
+        window.localStorage.setItem(video.src, video.currentTime);
+
+    };
+</script>  
 
 
 

@@ -90,7 +90,7 @@ class VideoFile:
 
     def __radd__(self, object):
         if object == 0:
-            return self
+            return self.duration
         else:
             return self.__add__(object)
 

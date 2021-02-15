@@ -18,7 +18,7 @@
                 <h5> {{ os.path.basename(root) }} <span class="badge rounded-pill bg-light text-dark"> {{ hms(sum(video_files_dict[root]))}}</span></h5>
                 {% for file in video_files_dict[root] %}
                 <div>
-                    <a class="link-secondary px-5" target="_blank" href="{{file.relpath}}">{{file.filename}} <span class="badge rounded-pill bg-light text-dark">{{hms(file.duration)}}</span> </a> 
+                    <a class="link-secondary px-5" target="_blank" href="{{file.relpath}}" data-bs-toggle="modal" data-bs-target="#ModalPlayer" data-bs-file="{{file.relpath}}">{{file.filename}} <span class="badge rounded-pill bg-light text-dark">{{hms(file.duration)}}</span> </a> 
                 </div>
                 {% endfor %}
             </div>
