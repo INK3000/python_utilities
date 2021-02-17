@@ -56,9 +56,17 @@
         
         let video = document.getElementById('video-player');
         let exampleModal = document.getElementById('ModalPlayer');
+        let playlist = document.getElementById('playlist');
+        let links = playlist.getElementsByTagName('a');
         let button;
-        let recipient;
+        let videoAndCategoryName;
+        let currentFileIdx
+        let link;
         let modalTitle;
+        let prev = 0;
+        let prevVideoLink;
+        let next = 0;
+        let nextVideoLink;
         
         function saveCurrentTime(){
             window.localStorage.setItem(video.src, video.currentTime);
@@ -70,16 +78,37 @@
 
         exampleModal.addEventListener('show.bs.modal', function (event) {
             button = event.relatedTarget;
-            recipient = button.getAttribute('data-bs-file');
+            videoAndCategoryName = button.getAttribute('data-bs-file');
+            link = button.href;
             modalTitle = exampleModal.querySelector('.modal-title');
             if (!video.paused) {
                 saveCurrentTime();
             };
+
             video.defaultPlaybackRate = 1.5;
-            video.src = recipient;
+            video.src = link;
             video.play();
             video.currentTime = Number(window.localStorage.getItem(video.src));
-            modalTitle.textContent = recipient;
+            modalTitle.textContent = videoAndCategoryName;
+
+            for (a of Object.entries(links)){
+                if (video.src == a[1].href) {
+                    currentFileIdx = a[0];
+                    };
+            };
+
+            console.log('currentFileIdx ', currentFileIdx);
+            if (Number(currentFileIdx) > 0){
+                prev = Number(currentFileIdx) - 1;
+            }else {
+                prev = 0;
+            };
+            
+            prevVideoLink = links[prev].href
+            console.log(prevVideoLink);
+            
+            
+
 
         });    
 
