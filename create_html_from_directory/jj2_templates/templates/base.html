@@ -6,6 +6,13 @@
     {%block title%}
         <title>{{ path }}</title>
     {%endblock%}
+    <style type="text/css">
+        li {
+            list-style-type: none;
+            margin-bottom: 0.7rem;
+        }
+        
+    </style>
     
 </head>
 <body>
@@ -54,67 +61,107 @@
 
     <script>
         
-        let video = document.getElementById('video-player');
-        let exampleModal = document.getElementById('ModalPlayer');
-        let playlist = document.getElementById('playlist');
-        let links = playlist.getElementsByTagName('a');
-        let button;
-        let videoAndCategoryName;
-        let currentFileIdx
-        let link;
-        let modalTitle;
-        let prev = 0;
-        let prevVideoLink;
-        let next = 0;
-        let nextVideoLink;
-        
+        const video = document.getElementById('video-player'),
+            exampleModal = document.getElementById('ModalPlayer'),
+            playlist = document.getElementById('playlist'),
+            playListLinks = playlist.getElementsByTagName('a');
+
+           
+        let fromStorageData, progressToStorage, progressFromStorage, currentFileIdx,
+            modalTitle, button,
+            videoAndCategoryName, link, elemProgressBar,
+            prevVideoLink, nextVideoLink,
+            prev = 0,
+            next = 0;
+
+        playlist.onload = fillProgressBar();
+
+        function fillProgressBar(){
+            console.log('fill')
+            for (a of Object.entries(playListLinks)){
+                if (window.localStorage.getItem(a[1].href)){
+                    a[1].childNodes[3].childNodes[1].style.width = window.localStorage.getItem(a[1].href).split(',')[1] +"%";
+                };
+
+            };
+        };
+
+        function getCurrentProgress(){
+            return video.currentTime * 100 / video.duration;
+        };
         function saveCurrentTime(){
-            window.localStorage.setItem(video.src, video.currentTime);
+            progressToStorage = Math.floor(getCurrentProgress());
+            window.localStorage.setItem(video.src, Array(video.currentTime, progressToStorage));
 
         };
 
+        function updateProgressBar(){
+            elemProgressBar = playListLinks[currentFileIdx].childNodes[3].childNodes[1];
+            elemProgressBar.style.width = getCurrentProgress()+"%"
+            console.log(elemProgressBar.style);
+        };
+
+        video.addEventListener('timeupdate', saveCurrentTime);
+        video.addEventListener('timeupdate', updateProgressBar);
         video.addEventListener('pause', saveCurrentTime);
         window.addEventListener('unload', saveCurrentTime);
+        
+        
+        exampleModal.addEventListener('hide.bs.modal', function (event) {
+            video.pause();
+        });
 
         exampleModal.addEventListener('show.bs.modal', function (event) {
             button = event.relatedTarget;
             videoAndCategoryName = button.getAttribute('data-bs-file');
             link = button.href;
+
             modalTitle = exampleModal.querySelector('.modal-title');
-            if (!video.paused) {
-                saveCurrentTime();
-            };
+            modalTitle.textContent = videoAndCategoryName;
+
 
             video.defaultPlaybackRate = 1.5;
             video.src = link;
             video.play();
-            video.currentTime = Number(window.localStorage.getItem(video.src));
-            modalTitle.textContent = videoAndCategoryName;
 
-            for (a of Object.entries(links)){
+            if (window.localStorage.getItem(video.src)){
+                fromStorageData = window.localStorage.getItem(video.src).split(',')    
+                video.currentTime = Number(fromStorageData[0]);
+                progressFromStorage = Number(fromStorageData[1]);
+
+            }
+            
+            for (a of Object.entries(playListLinks)){
                 if (video.src == a[1].href) {
                     currentFileIdx = a[0];
                     };
             };
-
             console.log('currentFileIdx ', currentFileIdx);
+            
             if (Number(currentFileIdx) > 0){
                 prev = Number(currentFileIdx) - 1;
             }else {
                 prev = 0;
             };
-            
-            prevVideoLink = links[prev].href
-            console.log(prevVideoLink);
+
+            if (Number(currentFileIdx) < playListLinks.length - 1){
+                next = Number(currentFileIdx) + 1;
+            }else {
+                next = playListLinks.length - 1;
+            };
+
+            console.log('prev', prev)
+            console.log('next', next)
+            prevVideoLink = playListLinks[prev].href
+            nextVideoLink = playListLinks[next].href
+
             
             
 
 
         });    
 
-        exampleModal.addEventListener('hide.bs.modal', function (event) {
-            video.pause();
-        });
+
 
         
     </script>  

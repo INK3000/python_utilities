@@ -2,6 +2,7 @@
 
 
 {%block content%}
+
  <div class="row py-3">
      <div class="col-12">
         <h2>{{ path }}</h2>
@@ -11,17 +12,28 @@
  </div>
 
 
-
+<div id="playlist">
     {% for root in video_files_dict %}
         <div class="row py-3">
-            <div class="col-12" id="playlist">
+            <div class="col-12">
                 <h5> {{ os.path.basename(root) }} <span class="badge rounded-pill bg-light text-dark"> {{ hms(sum(video_files_dict[root]))}}</span></h5>
+                <ul class="px-5">
                 {% for file in video_files_dict[root] %}
-                <div>
-                    <a class="link-secondary px-5" target="_blank" href="{{file.relpath}}" data-bs-toggle="modal" data-bs-target="#ModalPlayer" data-bs-file="{{file.relpath}}">{{file.filename}} <span class="badge rounded-pill bg-light text-dark">{{hms(file.duration)}}</span> </a> 
-                </div>
+
+                    <li>
+                    <a class="link-secondary" target="_blank" href="{{file.relpath}}" data-bs-toggle="modal" data-bs-target="#ModalPlayer" data-bs-file="{{file.relpath}}">{{file.filename}} <span class="badge rounded-pill bg-light text-dark">{{hms(file.duration)}}</span>
+                    <div class="progress" >
+                        <div class="progress-bar" role="progressbar"></div>
+                    </div> 
+                    </a>
+
+                    </li>
+                    
+                
                 {% endfor %}
+                </ul>
             </div>
         </div>
  {% endfor %}
+ </div>
 {%endblock%}
