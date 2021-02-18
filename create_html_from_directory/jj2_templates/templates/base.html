@@ -32,6 +32,17 @@
                                         Your browser does not support the video element.
                                     </video>
                                 </div>
+                                <nav aria-label="Page navigation example">
+                                    <ul class="pagination pagination-sm" id="pagination">
+                                      <li class="page-item">
+                                        <a class="page-link" href="#" target="_blank" aria-label="Previous" id="prev">Предыдущее видео</a>
+                                      </li>
+                                      
+                                      <li class="page-item">
+                                        <a class="page-link" href="#" target="_blank" aria-label="Next" id="next">Следующее видео</a>
+                                      </li>
+                                    </ul>
+                                  </nav>
                                 <!-- <a id="play_btn" class="button small" href="#" onclick = "togglePlay();">Play</a> -->
                             </div>
                         </div>
@@ -56,88 +67,140 @@
 
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>    
+
+
+<!-- Open link in modal  -->
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>    
+
+
 <!-- Open link in modal  -->
 
 
     <script>
+        "use strict";
         
-        const video = document.getElementById('video-player'),
-            exampleModal = document.getElementById('ModalPlayer'),
-            playlist = document.getElementById('playlist'),
-            playListLinks = playlist.getElementsByTagName('a');
+        const video = document.getElementById("video-player"),
+            exampleModal = document.getElementById("ModalPlayer"),
+            playlist = document.getElementById("playlist"),
+            playListLinks = playlist.getElementsByTagName("a"),
+            autoplayCheckbox = document.getElementById("checkAutoplay"),
+            pagination = document.getElementById("pagination"),
+            prevLink = document.getElementById("prev"),
+            nextLink = document.getElementById("next");
 
            
         let fromStorageData, progressToStorage, progressFromStorage, currentFileIdx,
             modalTitle, button,
-            videoAndCategoryName, link, elemProgressBar,
+            videoAndCategoryName, link, elemProgressBar, autoplay,
             prevVideoLink, nextVideoLink,
-            prev = 0,
-            next = 0;
+            siblings;
+
 
         playlist.onload = fillProgressBar();
+        playlist.onload = setAutoplayCheckbox();
 
+        function initVideoPlayer(link){
+            loadAndPlay(link);
+            setPagination(link);
+
+        };
+
+        function paginationClicked(event){
+            event.preventDefault();
+            console.log('pag', event);
+            initVideoPlayer(event.originalTarget.href);
+            
+        };
+
+        // преобразует строку "true" в логическое true
+        function boolFromString(string){
+            if (string == "true"){
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        function getCategoryName(button){
+            return button.getAttribute("data-bs-file")
+        };
+
+        // установка значения чекбокса из localStorage
+        function setAutoplayCheckbox(){
+            autoplay = boolFromString(window.localStorage.getItem("autoplayCheckbox"));
+            autoplayCheckbox.checked = autoplay;
+        };
+
+        
+        // заполняет прогрессбары по всему списку, из сохраненных значений прогресса
         function fillProgressBar(){
-            console.log('fill')
-            for (a of Object.entries(playListLinks)){
-                if (window.localStorage.getItem(a[1].href)){
-                    a[1].childNodes[3].childNodes[1].style.width = window.localStorage.getItem(a[1].href).split(',')[1] +"%";
-                };
-
+            let dataFromStorage;
+            for (let a of Object.entries(playListLinks)){
+                dataFromStorage = getStorageData(a[1].href);
+                a[1].childNodes[3].childNodes[1].style.width = dataFromStorage.progress +"%";
             };
         };
 
         function getCurrentProgress(){
             return video.currentTime * 100 / video.duration;
         };
-        function saveCurrentTime(){
-            progressToStorage = Math.floor(getCurrentProgress());
-            window.localStorage.setItem(video.src, Array(video.currentTime, progressToStorage));
 
+        function saveCurrentTime(){
+            progressToStorage = getCurrentProgress();
+            window.localStorage.setItem(video.src, Array(video.currentTime, progressToStorage));
         };
 
         function updateProgressBar(){
             elemProgressBar = playListLinks[currentFileIdx].childNodes[3].childNodes[1];
             elemProgressBar.style.width = getCurrentProgress()+"%"
-            console.log(elemProgressBar.style);
         };
 
-        video.addEventListener('timeupdate', saveCurrentTime);
-        video.addEventListener('timeupdate', updateProgressBar);
-        video.addEventListener('pause', saveCurrentTime);
-        window.addEventListener('unload', saveCurrentTime);
-        
-        
-        exampleModal.addEventListener('hide.bs.modal', function (event) {
-            video.pause();
-        });
+        function loadNextVideo(){
 
-        exampleModal.addEventListener('show.bs.modal', function (event) {
-            button = event.relatedTarget;
-            videoAndCategoryName = button.getAttribute('data-bs-file');
-            link = button.href;
+            console.log(nextVideoLink);
+            video.src = nextVideoLink;
+            video.play();
+            
+        };
 
-            modalTitle = exampleModal.querySelector('.modal-title');
-            modalTitle.textContent = videoAndCategoryName;
-
-
+        function loadAndPlay(link){
             video.defaultPlaybackRate = 1.5;
             video.src = link;
             video.play();
+            let dataFromStorage = getStorageData(link);
+            video.currentTime = dataFromStorage.time;
+        };
 
-            if (window.localStorage.getItem(video.src)){
-                fromStorageData = window.localStorage.getItem(video.src).split(',')    
-                video.currentTime = Number(fromStorageData[0]);
-                progressFromStorage = Number(fromStorageData[1]);
+        function getStorageData(link){
+            let time, progress;
+            if (!!window.localStorage.getItem(link)){
+                fromStorageData = window.localStorage.getItem(link).split(",")    
+                    time = Number(fromStorageData[0]),
+                    progress = Number(fromStorageData[1])
+            } else { 
+                time = 0;
+                progress = 0;
+            };
+            return {
+                    time: time,
+                    progress: progress
+                }
+        };
 
-            }
-            
-            for (a of Object.entries(playListLinks)){
-                if (video.src == a[1].href) {
+        function getCurrentId(link){
+            console.log("getCurrenId",link);
+            for (let a of Object.entries(playListLinks)){
+                if (link == a[1].href) {
                     currentFileIdx = a[0];
                     };
             };
-            console.log('currentFileIdx ', currentFileIdx);
-            
+            return Number(currentFileIdx);
+        };
+
+        function getSiblings(currentFileIdx){
+            let prev, next;
             if (Number(currentFileIdx) > 0){
                 prev = Number(currentFileIdx) - 1;
             }else {
@@ -149,21 +212,66 @@
             }else {
                 next = playListLinks.length - 1;
             };
+            return {
+                prev: prev,
+                next: next
+            };
+        };
 
-            console.log('prev', prev)
-            console.log('next', next)
-            prevVideoLink = playListLinks[prev].href
-            nextVideoLink = playListLinks[next].href
+        function setPagination(link){
+            currentFileIdx = getCurrentId(link);
+            console.log('setpag curr id', currentFileIdx);
+            siblings = getSiblings(currentFileIdx);
 
-            
-            
+            console.log("prev", siblings.prev);
+            console.log("next", siblings.next);
+            if (siblings.prev == currentFileIdx){
+                console.log('gotcha!!! 0000')
+                pagination.children[0].children[0].style.display="none";
+            }else{
+                pagination.children[0].children[0].style.display="";
+            };
+            if (siblings.next == currentFileIdx){
+                pagination.children[1].children[0].style.display="none";
+            }else{
+                pagination.children[1].children[0].style.display="";
+            };
+            pagination.children[0].children[0].href = playListLinks[siblings.prev].href;
+            pagination.children[1].children[0].href = playListLinks[siblings.next].href;
+        };
+        
+
+        // создание событий для различных элементов
+        prevLink.addEventListener("click", paginationClicked);
+        nextLink.addEventListener("click", paginationClicked);
+        video.addEventListener("timeupdate", saveCurrentTime);
+        video.addEventListener("timeupdate", updateProgressBar);
+        video.addEventListener("pause", saveCurrentTime);
+        // video.addEventListener("ended", loadNextVideo)
+        window.addEventListener("unload", saveCurrentTime);
+        autoplayCheckbox.addEventListener("change", function(event){
+            window.localStorage.setItem("autoplayCheckbox", autoplayCheckbox.checked);
+        });
+
+       
+        
+        exampleModal.addEventListener("hide.bs.modal", function (event) {
+            video.pause();
+        });
+
+        exampleModal.addEventListener("show.bs.modal", function (event) {
+            button = event.relatedTarget;
+            link = button.href;
+            initVideoPlayer(link);
+            videoAndCategoryName = getCategoryName(button);
+
+            modalTitle = exampleModal.querySelector(".modal-title");
+            modalTitle.textContent = videoAndCategoryName;
 
 
         });    
 
-
-
-        
+   
     </script>  
 
 
