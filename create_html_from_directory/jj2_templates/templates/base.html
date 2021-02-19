@@ -83,6 +83,7 @@
         
         const video = document.getElementById("video-player"),
             exampleModal = document.getElementById("ModalPlayer"),
+            modalTitle = exampleModal.querySelector(".modal-title"),
             playlist = document.getElementById("playlist"),
             playListLinks = playlist.getElementsByTagName("a"),
             autoplayCheckbox = document.getElementById("checkAutoplay"),
@@ -92,33 +93,30 @@
 
            
         let fromStorageData, progressToStorage, progressFromStorage, currentFileIdx,
-            modalTitle, button,
-            videoAndCategoryName, link, elemProgressBar, autoplay,
-            prevVideoLink, nextVideoLink,
+            button, videoAndCategoryName, link, elemProgressBar, autoplay,
             siblings;
 
 
         playlist.onload = fillProgressBar();
         playlist.onload = setAutoplayCheckbox();
 
+        // установка значений плеера, и кнопок предыдущее,следующее видео
         function initVideoPlayer(link){
+            videoAndCategoryName = getCategoryName(link);
+            modalTitle.textContent = videoAndCategoryName;
             loadAndPlay(link);
             setPagination(link);
-
         };
-
+        
+        // срабатывает при событии 'ended' элемента video
         function playNextVideo(){
             initVideoPlayer(nextLink.href);
         };
 
+        // срабатывает при нажатии кнопок пред. след.
         function paginationClicked(event){
             event.preventDefault();
-            videoAndCategoryName = getCategoryName(event.originalTarget);
-            modalTitle.textContent = videoAndCategoryName;
             initVideoPlayer(event.originalTarget.href);
-            
-
-            
         };
 
         // преобразует строку "true" в логическое true
@@ -130,8 +128,9 @@
             }
         };
 
-        function getCategoryName(button){
-            return button.getAttribute("data-bs-file")
+        // получает значение data-bs-file (название категории и видео) из массива элементов по переданной ссылке
+        function getCategoryName(link){
+            return playListLinks[getCurrentId(link)].getAttribute("data-bs-file")
         };
 
         // установка значения чекбокса из localStorage
@@ -150,21 +149,26 @@
             };
         };
 
+        // возвращает значение прогресса просмотра элемента video, в процентах
         function getCurrentProgress(){
             return video.currentTime * 100 / video.duration;
         };
 
+        // сохранить текущее время и прогресс в localStorage для открытого видео
         function saveCurrentTime(){
             progressToStorage = getCurrentProgress();
             window.localStorage.setItem(video.src, Array(video.currentTime, progressToStorage));
         };
 
+        // срабатывает при событии 'timeupdate' у элемента video. 
+        // обновление прогрессбара для просматриваемого видео
         function updateProgressBar(){
             elemProgressBar = playListLinks[currentFileIdx].childNodes[3].childNodes[1];
             elemProgressBar.style.width = getCurrentProgress()+"%"
         };
 
-
+        // устанавливает скорость, источник, запускает плеер
+        // устанавливает текущее время из сохраненного в localStorage
         function loadAndPlay(link){
             video.defaultPlaybackRate = 1.5;
             video.src = link;
@@ -173,6 +177,7 @@
             video.currentTime = dataFromStorage.time;
         };
 
+        // получает массив из двух элементов время, прогресс, возрващает нули, если нет записи
         function getStorageData(link){
             let time, progress;
             if (!!window.localStorage.getItem(link)){
@@ -189,6 +194,7 @@
                 }
         };
 
+        // возвращает id в массиве элементов а, содержащих ссылки и данные всех видео на странице
         function getCurrentId(link){
             for (let a of Object.entries(playListLinks)){
                 if (link == a[1].href) {
@@ -197,7 +203,8 @@
             };
             return Number(currentFileIdx);
         };
-
+        
+        // возвращает массив из двух элементов, содержащих id соседних видео
         function getSiblings(currentFileIdx){
             let prev, next;
             if (Number(currentFileIdx) > 0){
@@ -217,6 +224,7 @@
             };
         };
 
+        // устанавливает значения href для кнопок под видео, пред, след.
         function setPagination(link){
             currentFileIdx = getCurrentId(link);
             siblings = getSiblings(currentFileIdx);
@@ -248,22 +256,14 @@
         autoplayCheckbox.addEventListener("change", function(event){
             window.localStorage.setItem("autoplayCheckbox", autoplayCheckbox.checked);
         });
-
-       
         
         exampleModal.addEventListener("hide.bs.modal", function (event) {
             video.pause();
         });
 
         exampleModal.addEventListener("show.bs.modal", function (event) {
-            button = event.relatedTarget;
-            link = button.href;
-            videoAndCategoryName = getCategoryName(button);
-            modalTitle = exampleModal.querySelector(".modal-title");
-            modalTitle.textContent = videoAndCategoryName;
+            link = event.relatedTarget.href;
             initVideoPlayer(link);
-
-
         });    
 
    
