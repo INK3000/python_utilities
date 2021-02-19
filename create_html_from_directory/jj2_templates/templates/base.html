@@ -107,10 +107,17 @@
 
         };
 
+        function playNextVideo(){
+            initVideoPlayer(nextLink.href);
+        };
+
         function paginationClicked(event){
             event.preventDefault();
-            console.log('pag', event);
+            videoAndCategoryName = getCategoryName(event.originalTarget);
+            modalTitle.textContent = videoAndCategoryName;
             initVideoPlayer(event.originalTarget.href);
+            
+
             
         };
 
@@ -157,13 +164,6 @@
             elemProgressBar.style.width = getCurrentProgress()+"%"
         };
 
-        function loadNextVideo(){
-
-            console.log(nextVideoLink);
-            video.src = nextVideoLink;
-            video.play();
-            
-        };
 
         function loadAndPlay(link){
             video.defaultPlaybackRate = 1.5;
@@ -190,7 +190,6 @@
         };
 
         function getCurrentId(link){
-            console.log("getCurrenId",link);
             for (let a of Object.entries(playListLinks)){
                 if (link == a[1].href) {
                     currentFileIdx = a[0];
@@ -220,24 +219,21 @@
 
         function setPagination(link){
             currentFileIdx = getCurrentId(link);
-            console.log('setpag curr id', currentFileIdx);
             siblings = getSiblings(currentFileIdx);
-
-            console.log("prev", siblings.prev);
-            console.log("next", siblings.next);
             if (siblings.prev == currentFileIdx){
-                console.log('gotcha!!! 0000')
-                pagination.children[0].children[0].style.display="none";
+                prevLink.style.display="none";
             }else{
-                pagination.children[0].children[0].style.display="";
+                prevLink.style.display="";
             };
             if (siblings.next == currentFileIdx){
-                pagination.children[1].children[0].style.display="none";
+                nextLink.style.display="none";
             }else{
-                pagination.children[1].children[0].style.display="";
+                nextLink.style.display="";
             };
-            pagination.children[0].children[0].href = playListLinks[siblings.prev].href;
-            pagination.children[1].children[0].href = playListLinks[siblings.next].href;
+            prevLink.href = playListLinks[siblings.prev].href;
+            prevLink.setAttribute("data-bs-file", playListLinks[siblings.prev].getAttribute("data-bs-file"));
+            nextLink.href = playListLinks[siblings.next].href;
+            nextLink.setAttribute("data-bs-file", playListLinks[siblings.next].getAttribute("data-bs-file"));
         };
         
 
@@ -247,7 +243,7 @@
         video.addEventListener("timeupdate", saveCurrentTime);
         video.addEventListener("timeupdate", updateProgressBar);
         video.addEventListener("pause", saveCurrentTime);
-        // video.addEventListener("ended", loadNextVideo)
+        video.addEventListener("ended", playNextVideo)
         window.addEventListener("unload", saveCurrentTime);
         autoplayCheckbox.addEventListener("change", function(event){
             window.localStorage.setItem("autoplayCheckbox", autoplayCheckbox.checked);
@@ -262,18 +258,16 @@
         exampleModal.addEventListener("show.bs.modal", function (event) {
             button = event.relatedTarget;
             link = button.href;
-            initVideoPlayer(link);
             videoAndCategoryName = getCategoryName(button);
-
             modalTitle = exampleModal.querySelector(".modal-title");
             modalTitle.textContent = videoAndCategoryName;
+            initVideoPlayer(link);
 
 
         });    
 
    
-    </script>  
-
+    </script> 
 
 
 </body>
