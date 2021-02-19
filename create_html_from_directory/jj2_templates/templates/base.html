@@ -110,7 +110,9 @@
         
         // срабатывает при событии 'ended' элемента video
         function playNextVideo(){
-            initVideoPlayer(nextLink.href);
+            if (autoplayCheckbox.checked){
+                initVideoPlayer(nextLink.href);
+            };
         };
 
         // срабатывает при нажатии кнопок пред. след.
