@@ -111,6 +111,7 @@
         // срабатывает при событии 'ended' элемента video
         function playNextVideo(){
             if (autoplayCheckbox.checked){
+                video.pause();
                 initVideoPlayer(nextLink.href);
             };
         };
@@ -172,10 +173,9 @@
         // устанавливает скорость, источник, запускает плеер
         // устанавливает текущее время из сохраненного в localStorage
         function loadAndPlay(link){
-            video.defaultPlaybackRate = 1.5;
-            video.src = link;
-            video.play();
             let dataFromStorage = getStorageData(link);
+            video.defaultPlaybackRate = 1.5; 
+            video.src = link;
             video.currentTime = dataFromStorage.time;
         };
 
@@ -253,7 +253,10 @@
         video.addEventListener("timeupdate", saveCurrentTime);
         video.addEventListener("timeupdate", updateProgressBar);
         video.addEventListener("pause", saveCurrentTime);
-        video.addEventListener("ended", playNextVideo)
+        video.addEventListener("ended", playNextVideo);
+        video.addEventListener("loadedmetadata", function(event){
+            video.play();
+        });
         window.addEventListener("unload", saveCurrentTime);
         autoplayCheckbox.addEventListener("change", function(event){
             window.localStorage.setItem("autoplayCheckbox", autoplayCheckbox.checked);
