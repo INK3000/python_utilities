@@ -137,9 +137,9 @@
         // заполняет прогрессбары по всему списку, из сохраненных значений прогресса
         function fillProgressBar(){
             let dataFromStorage;
-            for (let a of Object.entries(playListLinks)){
-                dataFromStorage = getStorageData(a[1].href);
-                a[1].childNodes[3].childNodes[1].style.width = dataFromStorage.progress +"%";
+            for (let a of playListLinks){
+                dataFromStorage = getStorageData(a.href);
+                a.childNodes[3].childNodes[1].style.width = dataFromStorage.progress +"%";
             };
         };
 
