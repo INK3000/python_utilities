@@ -32,18 +32,10 @@
                                         Your browser does not support the video element.
                                     </video>
                                 </div>
-                                <nav aria-label="Page navigation example">
-                                    <ul class="pagination pagination-sm" id="pagination">
-                                      <li class="page-item">
-                                        <a class="page-link" href="#" target="_blank" aria-label="Previous" id="prev">Предыдущее видео</a>
-                                      </li>
-                                      
-                                      <li class="page-item">
-                                        <a class="page-link" href="#" target="_blank" aria-label="Next" id="next">Следующее видео</a>
-                                      </li>
-                                    </ul>
-                                  </nav>
-                                <!-- <a id="play_btn" class="button small" href="#" onclick = "togglePlay();">Play</a> -->
+                                <div class="d-flex justify-content-between" id="pagination" >
+                                        <a class="btn btn-secondary" href="#" target="_blank"  id="prev">Предыдущее видео</a>
+                                        <a class="btn btn-secondary ms-auto" href="#" target="_blank"  id="next">Следующее видео</a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -87,7 +79,6 @@
             playlist = document.getElementById("playlist"),
             playListLinks = playlist.getElementsByTagName("a"),
             autoplayCheckbox = document.getElementById("checkAutoplay"),
-            pagination = document.getElementById("pagination"),
             prevLink = document.getElementById("prev"),
             nextLink = document.getElementById("next");
 
