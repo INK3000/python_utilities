@@ -57,22 +57,20 @@
         {%endblock%}
     </div>
 
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>    
 
-
-<!-- Open link in modal  -->
-
+    <div style="position: fixed; right: 30px; bottom: 20px; z-index: 1030;">
+        <button class="btn btn-light" id="scrollToTop" type="button" style="display: none;">Туда!</button>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>    
 
 
-<!-- Open link in modal  -->
+    <!-- Open link in modal  -->
 
 
     <script>
         "use strict";
-        
+
         const video = document.getElementById("video-player"),
             exampleModal = document.getElementById("ModalPlayer"),
             modalTitle = exampleModal.querySelector(".modal-title"),
@@ -80,42 +78,76 @@
             playListLinks = playlist.getElementsByTagName("a"),
             autoplayCheckbox = document.getElementById("checkAutoplay"),
             prevLink = document.getElementById("prev"),
-            nextLink = document.getElementById("next");
+            nextLink = document.getElementById("next"),
+            scrollToTop = document.getElementById("scrollToTop"),
+            playRateLabel = document.getElementById("playRateLabel"),
+            playRateInput = document.getElementById("playRateInput");
 
-           
+
         let fromStorageData, progressToStorage, progressFromStorage, currentFileIdx,
             button, videoAndCategoryName, link, elemProgressBar, autoplay,
-            siblings;
+            siblings, scrollPosition = null;
 
 
-        playlist.onload = fillProgressBar();
-        playlist.onload = setAutoplayCheckbox();
+        function renameScrollButton(name) {
+            scrollToTop.textContent = name;
+        }
+        //прокрутка вверх
+        function scrollTop() {
+            scrollToTop.blur();
+            switch (scrollToTop.textContent) {
+                case "Туда!":
+                    scrollPosition = document.documentElement.scrollTop;
+                    document.documentElement.scrollTop = 0;
+                    renameScrollButton("Обратно!");
+                    break;
+                case "Обратно!":
+                    document.documentElement.scrollTop = scrollPosition;
+                    scrollPosition = 0;
+                    renameScrollButton("Туда!");
+            };
+        };
+
+        // скрыть-отобразить кнопку To Top (scrollToTop)
+        function checkToTopVisible() {
+            const scrollHeight = document.documentElement.scrollTop;
+            const clientHeight = document.documentElement.clientHeight;
+            if (scrollHeight > clientHeight / 2) {
+                scrollToTop.style.display = "inline-block";
+            } else {
+                if (scrollPosition === null) {
+                    scrollToTop.style.display = "none";
+                    scrollPosition = 0;
+                }
+            }
+        }
+
 
         // установка значений плеера, и кнопок предыдущее,следующее видео
-        function initVideoPlayer(link){
+        function initVideoPlayer(link) {
             videoAndCategoryName = getCategoryName(link);
             modalTitle.textContent = videoAndCategoryName;
             loadAndPlay(link);
             setPagination(link);
         };
-        
+
         // срабатывает при событии 'ended' элемента video
-        function playNextVideo(){
-            if (autoplayCheckbox.checked){
+        function playNextVideo() {
+            if (autoplayCheckbox.checked) {
                 video.pause();
                 initVideoPlayer(nextLink.href);
             };
         };
 
         // срабатывает при нажатии кнопок пред. след.
-        function paginationClicked(event){
+        function paginationClicked(event) {
             event.preventDefault();
             initVideoPlayer(event.originalTarget.href);
         };
 
         // преобразует строку "true" в логическое true
-        function boolFromString(string){
-            if (string == "true"){
+        function boolFromString(string) {
+            if (string == "true") {
                 return true;
             } else {
                 return false;
@@ -123,92 +155,92 @@
         };
 
         // получает значение data-bs-file (название категории и видео) из массива элементов по переданной ссылке
-        function getCategoryName(link){
+        function getCategoryName(link) {
             return playListLinks[getCurrentId(link)].getAttribute("data-bs-file")
         };
 
         // установка значения чекбокса из localStorage
-        function setAutoplayCheckbox(){
+        function setAutoplayCheckbox() {
             autoplay = boolFromString(window.localStorage.getItem("autoplayCheckbox"));
             autoplayCheckbox.checked = autoplay;
         };
 
-        
+
         // заполняет прогрессбары по всему списку, из сохраненных значений прогресса
-        function fillProgressBar(){
+        function fillProgressBar() {
             let dataFromStorage;
-            for (let a of playListLinks){
+            for (let a of playListLinks) {
                 dataFromStorage = getStorageData(a.href);
-                a.childNodes[3].childNodes[1].style.width = dataFromStorage.progress +"%";
+                a.childNodes[3].childNodes[1].style.width = dataFromStorage.progress + "%";
             };
         };
 
         // возвращает значение прогресса просмотра элемента video, в процентах
-        function getCurrentProgress(){
+        function getCurrentProgress() {
             return video.currentTime * 100 / video.duration;
         };
 
         // сохранить текущее время и прогресс в localStorage для открытого видео
-        function saveCurrentTime(){
+        function saveCurrentTime() {
             progressToStorage = getCurrentProgress();
             window.localStorage.setItem(video.src, Array(video.currentTime, progressToStorage));
         };
 
         // срабатывает при событии 'timeupdate' у элемента video. 
         // обновление прогрессбара для просматриваемого видео
-        function updateProgressBar(){
+        function updateProgressBar() {
             elemProgressBar = playListLinks[currentFileIdx].childNodes[3].childNodes[1];
-            elemProgressBar.style.width = getCurrentProgress()+"%"
+            elemProgressBar.style.width = getCurrentProgress() + "%"
         };
 
         // устанавливает скорость, источник, запускает плеер
         // устанавливает текущее время из сохраненного в localStorage
-        function loadAndPlay(link){
+        function loadAndPlay(link) {
             let dataFromStorage = getStorageData(link);
-            video.defaultPlaybackRate = 1.5; 
+            video.defaultPlaybackRate = Number(playRateInput.value);
             video.src = link;
             video.currentTime = dataFromStorage.time;
         };
 
         // получает массив из двух элементов время, прогресс, возрващает нули, если нет записи
-        function getStorageData(link){
+        function getStorageData(link) {
             let time, progress;
-            if (!!window.localStorage.getItem(link)){
-                fromStorageData = window.localStorage.getItem(link).split(",")    
-                    time = Number(fromStorageData[0]),
+            if (!!window.localStorage.getItem(link)) {
+                fromStorageData = window.localStorage.getItem(link).split(",")
+                time = Number(fromStorageData[0]),
                     progress = Number(fromStorageData[1])
-            } else { 
+            } else {
                 time = 0;
                 progress = 0;
             };
             return {
-                    time: time,
-                    progress: progress
-                }
+                time: time,
+                progress: progress
+            }
         };
 
         // возвращает id в массиве элементов а, содержащих ссылки и данные всех видео на странице
-        function getCurrentId(link){
-            for (let a of Object.entries(playListLinks)){
+        function getCurrentId(link) {
+            for (let a of Object.entries(playListLinks)) {
                 if (link == a[1].href) {
                     currentFileIdx = a[0];
-                    };
+                };
             };
             return Number(currentFileIdx);
         };
-        
+
         // возвращает массив из двух элементов, содержащих id соседних видео
-        function getSiblings(currentFileIdx){
+        function getSiblings(currentFileIdx) {
             let prev, next;
-            if (Number(currentFileIdx) > 0){
+            if (Number(currentFileIdx) > 0) {
                 prev = Number(currentFileIdx) - 1;
-            }else {
+            } else {
                 prev = 0;
             };
 
-            if (Number(currentFileIdx) < playListLinks.length - 1){
+            if (Number(currentFileIdx) < playListLinks.length - 1) {
                 next = Number(currentFileIdx) + 1;
-            }else {
+            } else {
                 next = playListLinks.length - 1;
             };
             return {
@@ -218,41 +250,52 @@
         };
 
         // устанавливает значения href для кнопок под видео, пред, след.
-        function setPagination(link){
+        function setPagination(link) {
             currentFileIdx = getCurrentId(link);
             siblings = getSiblings(currentFileIdx);
-            if (siblings.prev == currentFileIdx){
-                prevLink.style.display="none";
-            }else{
-                prevLink.style.display="";
+            if (siblings.prev == currentFileIdx) {
+                prevLink.style.display = "none";
+            } else {
+                prevLink.style.display = "";
             };
-            if (siblings.next == currentFileIdx){
-                nextLink.style.display="none";
-            }else{
-                nextLink.style.display="";
+            if (siblings.next == currentFileIdx) {
+                nextLink.style.display = "none";
+            } else {
+                nextLink.style.display = "";
             };
             prevLink.href = playListLinks[siblings.prev].href;
             prevLink.setAttribute("data-bs-file", playListLinks[siblings.prev].getAttribute("data-bs-file"));
             nextLink.href = playListLinks[siblings.next].href;
             nextLink.setAttribute("data-bs-file", playListLinks[siblings.next].getAttribute("data-bs-file"));
         };
-        
+
 
         // создание событий для различных элементов
+        playlist.onload = fillProgressBar();
+        playlist.onload = setAutoplayCheckbox();
+        playRateInput.addEventListener("change", function (e) {
+            playRateLabel.textContent = playRateInput.value
+        });
+        window.addEventListener('load', function (e) {
+            playRateLabel.textContent = playRateInput.value
+        });
+        document.addEventListener("scroll", checkToTopVisible);
+        scrollToTop.addEventListener("click", scrollTop);
         prevLink.addEventListener("click", paginationClicked);
         nextLink.addEventListener("click", paginationClicked);
         video.addEventListener("timeupdate", saveCurrentTime);
         video.addEventListener("timeupdate", updateProgressBar);
         video.addEventListener("pause", saveCurrentTime);
         video.addEventListener("ended", playNextVideo);
-        video.addEventListener("loadedmetadata", function(event){
+        video.addEventListener("loadedmetadata", function (event) {
             video.play();
+            video.volume = 0.5;
         });
         window.addEventListener("unload", saveCurrentTime);
-        autoplayCheckbox.addEventListener("change", function(event){
+        autoplayCheckbox.addEventListener("change", function (event) {
             window.localStorage.setItem("autoplayCheckbox", autoplayCheckbox.checked);
         });
-        
+
         exampleModal.addEventListener("hide.bs.modal", function (event) {
             video.pause();
         });
@@ -260,10 +303,8 @@
         exampleModal.addEventListener("show.bs.modal", function (event) {
             link = event.relatedTarget.href;
             initVideoPlayer(link);
-        });    
-
-   
-    </script> 
+        });
+    </script>
 
 
 </body>
