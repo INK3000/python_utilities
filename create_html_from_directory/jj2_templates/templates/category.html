@@ -2,34 +2,6 @@
 
 
 {%block content%}
-
- <div class="row py-3">
-     <div class="col-12">
-        <h2>{{ path }}</h2>
-        <a href="." target="_blank">Открыть директорию в браузере</a>
-        <p>Общее время: {{ total_duration }}</p>   
-        <div class="form-check">
-            <div class="row">
-                <div class="col-4">
-                    <input class="form-check-input" type="checkbox" value="" id="checkAutoplay" checked>
-                    <label class="form-check-label" for="checkAutoplay">
-                        Включить автовоспроизведение
-                    </label>
-                </div>
-                <div class="col-8">
-                    <label for="customRange3" class="form-label">Скорость
-                        воспроизведения <span id="playRateLabel"></span></label>
-                    <input type="range" class="form-range" min="0.5" max="2" step="0.25" id="playRateInput"
-                        value="1.5">
-                </div>
-            </div>
-
-
-        </div>
-     </div>
- </div>
-
-
 <div id="playlist">
     {% for root in video_files_dict %}
         <div class="row py-3">
