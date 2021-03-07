@@ -100,46 +100,48 @@
         <!-- Open link in modal  -->
 
 
-        <script>
-            "use strict";
+    <script>
+        "use strict";
 
-            const video = document.getElementById("video-player"),
+        const video = document.getElementById("video-player"),
             exampleModal = document.getElementById("ModalPlayer"),
             modalTitle = exampleModal.querySelector(".modal-title"),
             playlist = document.getElementById("playlist"),
             playListLinks = playlist.getElementsByTagName("a"),
             autoplayCheckbox = document.getElementById("checkAutoplay"),
+            formCheck = document.getElementsByClassName("form-check")[0],
             prevLink = document.getElementById("prev"),
             nextLink = document.getElementById("next"),
             scrollToTop = document.getElementById("scrollToTop"),
-            volumeInput = document.getElementById("volumeInput");
+            volumeInput = document.getElementById("volumeInput"),
             playRateLabel = document.getElementById("playRateLabel"),
             playRateInput = document.getElementById("playRateInput");
 
 
-            let fromStorageData, progressToStorage, progressFromStorage, currentFileIdx,
+        let fromStorageData, progressToStorage, progressFromStorage, currentFileIdx,
             button, videoAndCategoryName, link, elemProgressBar, autoplay,
             siblings, scrollPosition = null;
 
 
-            function renameScrollButton(name) {
-                scrollToTop.textContent = name;
-            }
         //прокрутка вверх
         function scrollTop() {
             scrollToTop.blur();
             switch (scrollToTop.textContent) {
                 case "Туда!":
-                scrollPosition = document.documentElement.scrollTop;
-                document.documentElement.scrollTop = 0;
-                renameScrollButton("Обратно!");
-                break;
+                    scrollPosition = document.documentElement.scrollTop;
+                    document.documentElement.scrollTop = 0;
+                    renameScrollButton("Обратно!");
+                    break;
                 case "Обратно!":
-                document.documentElement.scrollTop = scrollPosition;
-                scrollPosition = 0;
-                renameScrollButton("Туда!");
+                    document.documentElement.scrollTop = scrollPosition;
+                    scrollPosition = 0;
+                    renameScrollButton("Туда!");
             };
         };
+
+        function renameScrollButton(name) {
+            scrollToTop.textContent = name;
+        }
 
         // скрыть-отобразить кнопку To Top (scrollToTop)
         function checkToTopVisible() {
@@ -154,7 +156,6 @@
                 }
             }
         }
-
 
         // установка значений плеера, и кнопок предыдущее,следующее видео
         function initVideoPlayer(link) {
@@ -193,9 +194,15 @@
         };
 
         // установка значения чекбокса из localStorage
-        function setAutoplayCheckbox() {
+        function setFormCheck() {
             autoplay = boolFromString(window.localStorage.getItem("autoplayCheckbox"));
             autoplayCheckbox.checked = autoplay;
+            volumeInput.value = (window.localStorage.getItem("volume")) ? window.localStorage.getItem("volume") :
+                0.5;
+            let playRate = (window.localStorage.getItem("playRate")) ? window.localStorage.getItem("playRate") :
+                1;
+            playRateInput.value = playRate;
+            playRateLabel.textContent = playRate;
         };
 
 
@@ -241,7 +248,7 @@
             if (!!window.localStorage.getItem(link)) {
                 fromStorageData = window.localStorage.getItem(link).split(",")
                 time = Number(fromStorageData[0]),
-                progress = Number(fromStorageData[1])
+                    progress = Number(fromStorageData[1])
             } else {
                 time = 0;
                 progress = 0;
@@ -304,13 +311,16 @@
 
 
         // создание событий для различных элементов
-        playlist.onload = fillProgressBar();
-        playlist.onload = setAutoplayCheckbox();
+        playlist.addEventListener("load", function (e) {
+            console.log("whoooohoooo!");
+        })
+
         playRateInput.addEventListener("change", function (e) {
-            playRateLabel.textContent = playRateInput.value
+            playRateLabel.textContent = playRateInput.value;
         });
-        window.addEventListener('load', function (e) {
-            playRateLabel.textContent = playRateInput.value
+        window.addEventListener("load", function (e) {
+            fillProgressBar();
+            setFormCheck();
         });
         document.addEventListener("scroll", checkToTopVisible);
         scrollToTop.addEventListener("click", scrollTop);
@@ -325,9 +335,15 @@
             video.volume = Number(volumeInput.value);
         });
         window.addEventListener("unload", saveCurrentTime);
-        autoplayCheckbox.addEventListener("change", function (event) {
+        formCheck.addEventListener("change", function (event) {
             window.localStorage.setItem("autoplayCheckbox", autoplayCheckbox.checked);
+            window.localStorage.setItem("playRate", playRateInput.value);
+            window.localStorage.setItem("volume", volumeInput.value);
+            console.log("111");
         });
+        // autoplayCheckbox.addEventListener("change", function (event) {
+        //     window.localStorage.setItem("autoplayCheckbox", autoplayCheckbox.checked);
+        // });
 
         exampleModal.addEventListener("hide.bs.modal", function (event) {
             video.pause();
