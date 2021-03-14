@@ -56,7 +56,7 @@
            <div class="col-12">
             <h2>{{ path }}</h2>
             <a href="." target="_blank">Открыть директорию в браузере</a>
-            <p>Общее время: {{ total_duration }}</p>   
+            <p>Общее время: <span data-time="{{ total_duration }}">{{ total_duration }}</span></p>   
                 <div class="form-check">
                     <div class="row">
                         <div class="col-4">
@@ -311,16 +311,16 @@
 
 
         // создание событий для различных элементов
-        playlist.addEventListener("load", function (e) {
-            console.log("whoooohoooo!");
-        })
-
-        playRateInput.addEventListener("change", function (e) {
+        playRateInput.addEventListener("input", function (e) {
             playRateLabel.textContent = playRateInput.value;
+            renderNewTime();
+
         });
         window.addEventListener("load", function (e) {
             fillProgressBar();
+            renderNewTime();
             setFormCheck();
+
         });
         document.addEventListener("scroll", checkToTopVisible);
         scrollToTop.addEventListener("click", scrollTop);
@@ -339,7 +339,7 @@
             window.localStorage.setItem("autoplayCheckbox", autoplayCheckbox.checked);
             window.localStorage.setItem("playRate", playRateInput.value);
             window.localStorage.setItem("volume", volumeInput.value);
-            console.log("111");
+
         });
         // autoplayCheckbox.addEventListener("change", function (event) {
         //     window.localStorage.setItem("autoplayCheckbox", autoplayCheckbox.checked);
@@ -353,6 +353,45 @@
             link = event.relatedTarget.href;
             initVideoPlayer(link);
         });
+
+        function renderNewTime() {
+            const timeArray = document.querySelectorAll("[data-time]");
+            timeArray.forEach(elem => {
+                let newTime = secondsToHms(changeTimeRate(hmsToSeconds(elem.dataset.time), playRateInput
+                    .value));
+                if (playRateInput
+                    .value !== "1"){
+                    newTime = elem.dataset.time + " / " + newTime
+                }
+                elem.textContent = newTime;
+            });
+        }
+
+        function changeTimeRate(seconds, rate) {
+            return Math.floor(seconds / rate);
+        }
+
+        function hmsToSeconds(time) {
+            const hours = +time.slice(0, 2);
+            const seconds = +time.slice(6, 8);
+            const minutes = +time.slice(3, 5);
+            return (hours * 3600) + (minutes * 60) + seconds;
+        }
+
+        function secondsToHms(time) {
+            let hours = format2digit(Math.trunc(time / 3600));
+            let minutes = format2digit(Math.trunc(time % 3600 / 60));
+            let seconds = format2digit(time % 60);
+            return `${hours}:${minutes}:${seconds}`;
+        }
+
+        function format2digit(number) {
+            let result = number;
+            if (number.toString().length < 2) {
+                result = `0${number}`;
+            }
+            return result;
+        }
     </script>
 
 
