@@ -247,15 +247,15 @@
             let time, progress;
             if (!!window.localStorage.getItem(link)) {
                 fromStorageData = window.localStorage.getItem(link).split(",")
-                time = Number(fromStorageData[0]),
-                    progress = Number(fromStorageData[1])
+                time = Number(fromStorageData[0])
+                progress = Number(fromStorageData[1])
             } else {
                 time = 0;
                 progress = 0;
             };
             return {
-                time: time,
-                progress: progress
+                time,
+                progress
             }
         };
 
