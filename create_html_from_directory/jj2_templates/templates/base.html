@@ -4,92 +4,395 @@
     <meta charset="UTF-8">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
     {%block title%}
-        <title>{{ path }}</title>
+    <title>{{ path }}</title>
     {%endblock%}
+    <style type="text/css">
+        li {
+            list-style-type: none;
+            margin-bottom: 0.7rem;
+        }
+        
+    </style>
     
 </head>
 <body>
-<!-- Modal -->
-<div class="modal fade " id="ModalPlayer" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="callout">
-                                <h5 class="modal-title"></h5>
-                                <div class="responsive-embed widescreen">
+    <!-- Modal -->
+    <div class="modal fade " id="ModalPlayer" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="callout">
+                                    <h5 class="modal-title"></h5>
+                                    <div class="responsive-embed widescreen">
 
-                                    <video controls class=" img-fluid" id="video-player" src = "">
-                                        Your browser does not support the video element.
-                                    </video>
+                                        <video controls class=" img-fluid" id="video-player" src = "">
+                                            Your browser does not support the video element.
+                                        </video>
+                                    </div>
+                                    <div class="d-flex justify-content-between" id="pagination" >
+                                        <a class="btn btn-secondary" href="#" target="_blank"  id="prev">Предыдущее видео</a>
+                                        <a class="btn btn-secondary ms-auto" href="#" target="_blank"  id="next">Следующее видео</a>
+                                    </div>
                                 </div>
-                                <!-- <a id="play_btn" class="button small" href="#" onclick = "togglePlay();">Play</a> -->
                             </div>
                         </div>
                     </div>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
             </div>
-
-
         </div>
     </div>
-</div>
 
-<!-- Video playlist -->
+    <!-- Video playlist -->
     <div class="container">
 
-        {%block content%}
-         
-        {%endblock%}
-    </div>
+       <div class="row py-3">
+           <div class="col-12">
+            <h2>{{ path }}</h2>
+            <a href="." target="_blank">Открыть директорию в браузере</a>
+            <p>Общее время: <span data-time="{{ total_duration }}">{{ total_duration }}</span></p>   
+                <div class="form-check">
+                    <div class="row">
+                        <div class="col-4">
+                            <input class="form-check-input" type="checkbox" value="" id="checkAutoplay" checked>
+                            <label class="form-check-label" for="checkAutoplay">
+                                Включить автовоспроизведение
+                            </label>
+                        </div>
+                        <div class="col-4">
+                            <label for="customRange3" class="form-label">Скорость
+                                воспроизведения <span id="playRateLabel"></span></label>
+                                <input type="range" class="form-range" min="0.5" max="2" step="0.25" id="playRateInput"
+                                value="1.5">
+                        </div>
+                        <div class="col-4">
+                            <label for="customRange3" class="form-label">Громкость <span
+                                id="volumeLabel"></span></label>
+                                <input type="range" class="form-range" min="0" max="1" step="0.1" id="volumeInput"
+                                value="1">
+                        </div>
+                    </div>
 
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>    
-<!-- Open link in modal  -->
+
+                </div>
+            </div>
+        </div>
+
+            {%block content%}
+
+            {%endblock%}
+        </div>
+
+
+        <div style="position: fixed; right: 30px; bottom: 20px; z-index: 1030;">
+            <button class="btn btn-light" id="scrollToTop" type="button" style="display: none;">Туда!</button>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>    
+
+
+        <!-- Open link in modal  -->
 
 
     <script>
-        
-        let video = document.getElementById('video-player');
-        let exampleModal = document.getElementById('ModalPlayer');
-        let button;
-        let recipient;
-        let modalTitle;
-        
-        function saveCurrentTime(){
-            window.localStorage.setItem(video.src, video.currentTime);
+        "use strict";
 
+        const video = document.getElementById("video-player"),
+            exampleModal = document.getElementById("ModalPlayer"),
+            modalTitle = exampleModal.querySelector(".modal-title"),
+            playlist = document.getElementById("playlist"),
+            playListLinks = playlist.getElementsByTagName("a"),
+            autoplayCheckbox = document.getElementById("checkAutoplay"),
+            formCheck = document.getElementsByClassName("form-check")[0],
+            prevLink = document.getElementById("prev"),
+            nextLink = document.getElementById("next"),
+            scrollToTop = document.getElementById("scrollToTop"),
+            volumeInput = document.getElementById("volumeInput"),
+            playRateLabel = document.getElementById("playRateLabel"),
+            playRateInput = document.getElementById("playRateInput");
+
+
+        let fromStorageData, progressToStorage, progressFromStorage, currentFileIdx,
+            button, videoAndCategoryName, link, elemProgressBar, autoplay,
+            siblings, scrollPosition = null;
+
+
+        //прокрутка вверх
+        function scrollTop() {
+            scrollToTop.blur();
+            switch (scrollToTop.textContent) {
+                case "Туда!":
+                    scrollPosition = document.documentElement.scrollTop;
+                    document.documentElement.scrollTop = 0;
+                    renameScrollButton("Обратно!");
+                    break;
+                case "Обратно!":
+                    document.documentElement.scrollTop = scrollPosition;
+                    scrollPosition = 0;
+                    renameScrollButton("Туда!");
+            };
         };
 
-        video.addEventListener('pause', saveCurrentTime);
-        window.addEventListener('unload', saveCurrentTime);
+        function renameScrollButton(name) {
+            scrollToTop.textContent = name;
+        }
 
-        exampleModal.addEventListener('show.bs.modal', function (event) {
-            button = event.relatedTarget;
-            recipient = button.getAttribute('data-bs-file');
-            modalTitle = exampleModal.querySelector('.modal-title');
-            if (!video.paused) {
-                saveCurrentTime();
+        // скрыть-отобразить кнопку To Top (scrollToTop)
+        function checkToTopVisible() {
+            const scrollHeight = document.documentElement.scrollTop;
+            const clientHeight = document.documentElement.clientHeight;
+            if (scrollHeight > clientHeight / 2) {
+                scrollToTop.style.display = "inline-block";
+            } else {
+                if (scrollPosition === null) {
+                    scrollToTop.style.display = "none";
+                    scrollPosition = 0;
+                }
+            }
+        }
+
+        // установка значений плеера, и кнопок предыдущее,следующее видео
+        function initVideoPlayer(link) {
+            videoAndCategoryName = getCategoryName(link);
+            modalTitle.textContent = videoAndCategoryName;
+            loadAndPlay(link);
+            setPagination(link);
+        };
+
+        // срабатывает при событии 'ended' элемента video
+        function playNextVideo() {
+            if (autoplayCheckbox.checked) {
+                video.pause();
+                initVideoPlayer(nextLink.href);
             };
-            video.defaultPlaybackRate = 1.5;
-            video.src = recipient;
+        };
+
+        // срабатывает при нажатии кнопок пред. след.
+        function paginationClicked(event) {
+            event.preventDefault();
+            initVideoPlayer(event.originalTarget.href);
+        };
+
+        // преобразует строку "true" в логическое true
+        function boolFromString(string) {
+            if (string == "true") {
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        // получает значение data-bs-file (название категории и видео) из массива элементов по переданной ссылке
+        function getCategoryName(link) {
+            return playListLinks[getCurrentId(link)].getAttribute("data-bs-file")
+        };
+
+        // установка значения чекбокса из localStorage
+        function setFormCheck() {
+            autoplay = boolFromString(window.localStorage.getItem("autoplayCheckbox"));
+            autoplayCheckbox.checked = autoplay;
+            volumeInput.value = (window.localStorage.getItem("volume")) ? window.localStorage.getItem("volume") :
+                0.5;
+            let playRate = (window.localStorage.getItem("playRate")) ? window.localStorage.getItem("playRate") :
+                1;
+            playRateInput.value = playRate;
+            playRateLabel.textContent = playRate;
+        };
+
+
+        // заполняет прогрессбары по всему списку, из сохраненных значений прогресса
+        function fillProgressBar() {
+            let dataFromStorage;
+            for (let a of playListLinks) {
+                dataFromStorage = getStorageData(a.href);
+                a.childNodes[3].childNodes[1].style.width = dataFromStorage.progress + "%";
+            };
+        };
+
+        // возвращает значение прогресса просмотра элемента video, в процентах
+        function getCurrentProgress() {
+            return video.currentTime * 100 / video.duration;
+        };
+
+        // сохранить текущее время и прогресс в localStorage для открытого видео
+        function saveCurrentTime() {
+            progressToStorage = getCurrentProgress();
+            window.localStorage.setItem(video.src, Array(video.currentTime, progressToStorage));
+        };
+
+        // срабатывает при событии 'timeupdate' у элемента video. 
+        // обновление прогрессбара для просматриваемого видео
+        function updateProgressBar() {
+            elemProgressBar = playListLinks[currentFileIdx].childNodes[3].childNodes[1];
+            elemProgressBar.style.width = getCurrentProgress() + "%"
+        };
+
+        // устанавливает скорость, источник, запускает плеер
+        // устанавливает текущее время из сохраненного в localStorage
+        function loadAndPlay(link) {
+            let dataFromStorage = getStorageData(link);
+            video.defaultPlaybackRate = Number(playRateInput.value);
+            video.src = link;
+            video.currentTime = dataFromStorage.time;
+        };
+
+        // получает массив из двух элементов время, прогресс, возрващает нули, если нет записи
+        function getStorageData(link) {
+            let time, progress;
+            if (!!window.localStorage.getItem(link)) {
+                fromStorageData = window.localStorage.getItem(link).split(",")
+                time = Number(fromStorageData[0]),
+                    progress = Number(fromStorageData[1])
+            } else {
+                time = 0;
+                progress = 0;
+            };
+            return {
+                time: time,
+                progress: progress
+            }
+        };
+
+        // возвращает id в массиве элементов а, содержащих ссылки и данные всех видео на странице
+        function getCurrentId(link) {
+            for (let a of Object.entries(playListLinks)) {
+                if (link == a[1].href) {
+                    currentFileIdx = a[0];
+                };
+            };
+            return Number(currentFileIdx);
+        };
+
+        // возвращает массив из двух элементов, содержащих id соседних видео
+        function getSiblings(currentFileIdx) {
+            let prev, next;
+            if (Number(currentFileIdx) > 0) {
+                prev = Number(currentFileIdx) - 1;
+            } else {
+                prev = 0;
+            };
+
+            if (Number(currentFileIdx) < playListLinks.length - 1) {
+                next = Number(currentFileIdx) + 1;
+            } else {
+                next = playListLinks.length - 1;
+            };
+            return {
+                prev: prev,
+                next: next
+            };
+        };
+
+        // устанавливает значения href для кнопок под видео, пред, след.
+        function setPagination(link) {
+            currentFileIdx = getCurrentId(link);
+            siblings = getSiblings(currentFileIdx);
+            if (siblings.prev == currentFileIdx) {
+                prevLink.style.display = "none";
+            } else {
+                prevLink.style.display = "";
+            };
+            if (siblings.next == currentFileIdx) {
+                nextLink.style.display = "none";
+            } else {
+                nextLink.style.display = "";
+            };
+            prevLink.href = playListLinks[siblings.prev].href;
+            prevLink.setAttribute("data-bs-file", playListLinks[siblings.prev].getAttribute("data-bs-file"));
+            nextLink.href = playListLinks[siblings.next].href;
+            nextLink.setAttribute("data-bs-file", playListLinks[siblings.next].getAttribute("data-bs-file"));
+        };
+
+
+        // создание событий для различных элементов
+        playRateInput.addEventListener("input", function (e) {
+            playRateLabel.textContent = playRateInput.value;
+            renderNewTime();
+
+        });
+        window.addEventListener("load", function (e) {
+            fillProgressBar();
+            renderNewTime();
+            setFormCheck();
+
+        });
+        document.addEventListener("scroll", checkToTopVisible);
+        scrollToTop.addEventListener("click", scrollTop);
+        prevLink.addEventListener("click", paginationClicked);
+        nextLink.addEventListener("click", paginationClicked);
+        video.addEventListener("timeupdate", saveCurrentTime);
+        video.addEventListener("timeupdate", updateProgressBar);
+        video.addEventListener("pause", saveCurrentTime);
+        video.addEventListener("ended", playNextVideo);
+        video.addEventListener("loadedmetadata", function (event) {
             video.play();
-            video.currentTime = Number(window.localStorage.getItem(video.src));
-            modalTitle.textContent = recipient;
+            video.volume = Number(volumeInput.value);
+        });
+        window.addEventListener("unload", saveCurrentTime);
+        formCheck.addEventListener("change", function (event) {
+            window.localStorage.setItem("autoplayCheckbox", autoplayCheckbox.checked);
+            window.localStorage.setItem("playRate", playRateInput.value);
+            window.localStorage.setItem("volume", volumeInput.value);
 
-        });    
+        });
+        // autoplayCheckbox.addEventListener("change", function (event) {
+        //     window.localStorage.setItem("autoplayCheckbox", autoplayCheckbox.checked);
+        // });
 
-        exampleModal.addEventListener('hide.bs.modal', function (event) {
+        exampleModal.addEventListener("hide.bs.modal", function (event) {
             video.pause();
         });
 
-        
-    </script>  
+        exampleModal.addEventListener("show.bs.modal", function (event) {
+            link = event.relatedTarget.href;
+            initVideoPlayer(link);
+        });
 
+        function renderNewTime() {
+            const timeArray = document.querySelectorAll("[data-time]");
+            timeArray.forEach(elem => {
+                let newTime = secondsToHms(changeTimeRate(hmsToSeconds(elem.dataset.time), playRateInput
+                    .value));
+                if (playRateInput
+                    .value !== "1"){
+                    newTime = elem.dataset.time + " / " + newTime
+                }
+                elem.textContent = newTime;
+            });
+        }
+
+        function changeTimeRate(seconds, rate) {
+            return Math.floor(seconds / rate);
+        }
+
+        function hmsToSeconds(time) {
+            const hours = +time.slice(0, 2);
+            const seconds = +time.slice(6, 8);
+            const minutes = +time.slice(3, 5);
+            return (hours * 3600) + (minutes * 60) + seconds;
+        }
+
+        function secondsToHms(time) {
+            let hours = format2digit(Math.trunc(time / 3600));
+            let minutes = format2digit(Math.trunc(time % 3600 / 60));
+            let seconds = format2digit(time % 60);
+            return `${hours}:${minutes}:${seconds}`;
+        }
+
+        function format2digit(number) {
+            let result = number;
+            if (number.toString().length < 2) {
+                result = `0${number}`;
+            }
+            return result;
+        }
+    </script>
 
 
 </body>
