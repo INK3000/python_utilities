@@ -389,16 +389,16 @@
         }
 
         function secondsToHms(time) {
-            let hours = format2digit(Math.trunc(time / 3600));
-            let minutes = format2digit(Math.trunc(time % 3600 / 60));
-            let seconds = format2digit(time % 60);
+            const hours = format2digit(Math.trunc(time / 3600));
+            const minutes = format2digit(Math.trunc(time % 3600 / 60));
+            const seconds = format2digit(time % 60);
             return `${hours}:${minutes}:${seconds}`;
         }
 
         function format2digit(number) {
-            let result = number;
-            if (number.toString().length < 2) {
-                result = `0${number}`;
+            let result = number.toString();
+            if (number < 10) {
+                result = '0' + number;
             }
             return result;
         }
