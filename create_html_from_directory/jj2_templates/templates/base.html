@@ -307,12 +307,12 @@
 
         // возвращает id в массиве элементов а, содержащих ссылки и данные всех видео на странице
         function getCurrentId(link) {
-            for (let a of Object.entries(playListLinks)) {
-                if (link == a[1].href) {
-                    currentFileIdx = a[0];
+            playListLinks.forEach((elem, id) => {
+                if (link == elem.href) {
+                    currentFileIdx = id;
                 };
-            };
-            return Number(currentFileIdx);
+            })
+            return currentFileIdx;
         };
 
 
