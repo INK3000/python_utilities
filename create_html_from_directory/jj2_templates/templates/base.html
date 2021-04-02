@@ -137,8 +137,7 @@
 
 
         let currentFileIdx,
-            autoplay,
-            siblings, scrollPosition = null;
+            scrollPosition = null;
 
         // устанавливает href для кнопки пред или след.   
         function setPrevNextButtonHref(btnObject, id) {
@@ -238,8 +237,7 @@
 
         // установка значения чекбокса из localStorage
         function setFormCheck() {
-            autoplay = boolFromString(window.localStorage.getItem("autoplayCheckbox"));
-            autoplayCheckbox.checked = autoplay;
+            autoplayCheckbox.checked = boolFromString(window.localStorage.getItem("autoplayCheckbox"));
             volumeInput.value = (window.localStorage.getItem("volume")) ? window.localStorage.getItem("volume") :
                 0.5;
             let playRate = (window.localStorage.getItem("playRate")) ? window.localStorage.getItem("playRate") :
