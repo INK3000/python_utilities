@@ -107,11 +107,9 @@
             exampleModal = document.getElementById("ModalPlayer"),
             modalTitle = exampleModal.querySelector(".modal-title"),
             playlist = document.getElementById("playlist"),
-            playListLinks = playlist.getElementsByTagName("a"),
+            playListLinks = playlist.querySelectorAll("a"),
             autoplayCheckbox = document.getElementById("checkAutoplay"),
             formCheck = document.getElementsByClassName("form-check")[0],
-            prevLink = document.getElementById("prev"),
-            nextLink = document.getElementById("next"),
             scrollToTop = document.getElementById("scrollToTop"),
             volumeInput = document.getElementById("volumeInput"),
             playRateLabel = document.getElementById("playRateLabel"),
@@ -138,8 +136,8 @@
             };
 
 
-        let fromStorageData, progressToStorage, progressFromStorage, currentFileIdx,
-            button, videoAndCategoryName, link, elemProgressBar, autoplay,
+        let currentFileIdx,
+            autoplay,
             siblings, scrollPosition = null;
 
         // устанавливает href для кнопки пред или след.   
@@ -205,8 +203,7 @@
 
         // установка значений плеера, и кнопок предыдущее,следующее видео
         function initVideoPlayer(link) {
-            videoAndCategoryName = getCategoryName(link);
-            modalTitle.textContent = videoAndCategoryName;
+            modalTitle.textContent = getCategoryName(link);
             loadAndPlay(link);
             setPagination(link);
         };
@@ -215,7 +212,7 @@
         function playNextVideo() {
             if (autoplayCheckbox.checked) {
                 video.pause();
-                initVideoPlayer(nextLink.href);
+                initVideoPlayer(nextButton.elem.href);
             };
         };
 
@@ -268,14 +265,15 @@
 
         // сохранить текущее время и прогресс в localStorage для открытого видео
         function saveCurrentTime() {
-            progressToStorage = getCurrentProgress();
-            window.localStorage.setItem(video.src, Array(video.currentTime, progressToStorage));
+            window.localStorage.setItem(
+                video.src, Array(video.currentTime, getCurrentProgress())
+            );
         };
 
         // срабатывает при событии 'timeupdate' у элемента video. 
         // обновление прогрессбара для просматриваемого видео
         function updateProgressBar() {
-            elemProgressBar = playListLinks[currentFileIdx].childNodes[3].childNodes[1];
+            const elemProgressBar = playListLinks[currentFileIdx].childNodes[3].childNodes[1];
             elemProgressBar.style.width = getCurrentProgress() + "%"
         };
 
@@ -292,7 +290,7 @@
         function getStorageData(link) {
             let time, progress;
             if (!!window.localStorage.getItem(link)) {
-                fromStorageData = window.localStorage.getItem(link).split(",")
+                const fromStorageData = window.localStorage.getItem(link).split(",")
                 time = Number(fromStorageData[0]),
                     progress = Number(fromStorageData[1])
             } else {
@@ -304,6 +302,7 @@
                 progress: progress
             }
         };
+
 
         // возвращает id в массиве элементов а, содержащих ссылки и данные всех видео на странице
         function getCurrentId(link) {
@@ -317,16 +316,13 @@
 
 
         // создание событий для различных элементов
-        playlist.addEventListener("load", function (e) {
-            console.log("whoooohoooo!");
-        })
 
-        playRateInput.addEventListener("change", function (e) {
+        playRateInput.addEventListener("input", function (e) {
             playRateLabel.textContent = playRateInput.value;
             renderNewTime();
 
         });
-        window.addEventListener("load", function (e) {
+        document.addEventListener("DOMContentLoaded", function (e) {
             fillProgressBar();
             renderNewTime();
             setFormCheck();
@@ -334,34 +330,33 @@
         });
         document.addEventListener("scroll", checkToTopVisible);
         scrollToTop.addEventListener("click", scrollTop);
-        prevLink.addEventListener("click", paginationClicked);
-        nextLink.addEventListener("click", paginationClicked);
-        video.addEventListener("timeupdate", saveCurrentTime);
-        video.addEventListener("timeupdate", updateProgressBar);
+        [prevButton, nextButton].forEach(obj => {
+            obj.elem.addEventListener("click", paginationClicked);
+        })
+        video.addEventListener("timeupdate", (e) => {
+            saveCurrentTime();
+            updateProgressBar();
+        });
         video.addEventListener("pause", saveCurrentTime);
         video.addEventListener("ended", playNextVideo);
-        video.addEventListener("loadedmetadata", function (event) {
+        video.addEventListener("loadedmetadata", (e) => {
             video.play();
             video.volume = Number(volumeInput.value);
         });
         window.addEventListener("unload", saveCurrentTime);
-        formCheck.addEventListener("change", function (event) {
+        formCheck.addEventListener("change", (e) => {
             window.localStorage.setItem("autoplayCheckbox", autoplayCheckbox.checked);
             window.localStorage.setItem("playRate", playRateInput.value);
             window.localStorage.setItem("volume", volumeInput.value);
 
         });
-        // autoplayCheckbox.addEventListener("change", function (event) {
-        //     window.localStorage.setItem("autoplayCheckbox", autoplayCheckbox.checked);
-        // });
 
         exampleModal.addEventListener("hide.bs.modal", function (event) {
             video.pause();
         });
 
         exampleModal.addEventListener("show.bs.modal", function (event) {
-            link = event.relatedTarget.href;
-            initVideoPlayer(link);
+            initVideoPlayer(event.relatedTarget.href);
         });
 
         function renderNewTime() {
@@ -389,16 +384,16 @@
         }
 
         function secondsToHms(time) {
-            const hours = format2digit(Math.trunc(time / 3600));
-            const minutes = format2digit(Math.trunc(time % 3600 / 60));
-            const seconds = format2digit(time % 60);
+            let hours = format2digit(Math.trunc(time / 3600));
+            let minutes = format2digit(Math.trunc(time % 3600 / 60));
+            let seconds = format2digit(time % 60);
             return `${hours}:${minutes}:${seconds}`;
         }
 
         function format2digit(number) {
-            let result = number.toString();
-            if (number < 10) {
-                result = '0' + number;
+            let result = number;
+            if (number.toString().length < 2) {
+                result = `0${number}`;
             }
             return result;
         }
