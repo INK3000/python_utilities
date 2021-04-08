@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+    <script src="https://kit.fontawesome.com/837ddb964a.js" crossorigin="anonymous"></script>
     {%block title%}
     <title>{{ path }}</title>
     {%endblock%}
@@ -101,332 +102,395 @@
 
 
 
-<script>
-"use strict";
+    <script>
+        "use strict";
 
-const app = {
-    domElements: {
-        propertiesForm: document.querySelector(".properties"),
-        autoplayCheckbox: document.querySelector("#checkAutoplay"),
-        volumeInput: document.querySelector("#volumeInput"),
-        playRateLabel: document.querySelector("#playRateLabel"),
-        playRateInput: document.querySelector("#playRateInput"),
-        playlist: document.querySelector("#playlist").querySelectorAll("a"),
-        progressBars: playlist.querySelectorAll('.progress-bar'),
-        timeArray: document.querySelectorAll("[data-time]"),
-        scrollBtn: document.querySelector("#scrollToTop"),
-        renderTime() {
-            const speed = app.properties.data.speed;
-            this.timeArray.forEach(elem => {
-                const time = elem.dataset.time;
-                let newTime = secondsToHms(changeTimeRate(hmsToSeconds(time),
-                    speed));
-                if (speed !== 1) {
-                    newTime = time + " / " + newTime
-                }
-                elem.textContent = newTime;
-            })
-        },
-        toScroll() {
-            this.scrollBtn.blur();
-            switch (this.scrollBtn.textContent) {
-                case "Туда!":
-                app.properties.scrollPosition = document.documentElement.scrollTop;
-                document.documentElement.scrollTop = 0;
-                this.scrollBtn.textContent = "Обратно!";
-                break;
-                case "Обратно!":
-                document.documentElement.scrollTop = app.properties.scrollPosition;
-                app.properties.scrollPosition = 0;
-                this.scrollBtn.textContent = "Туда!";
-            };
-        },
-        renderProgressBar() {
-            this.progressBars[modal.video.data.id].style.width = `${modal.video.data.progress}%`;
-        },
-        renderProgressBarsAll() {
-            this.playlist.forEach((item, id) => {
-                const data = app.storage.loadData(item.href);
-                if (isNotEmptyObject(data) && data.progress) {
-                    app.domElements.progressBars[id].style.width = `${data.progress}%`
-                }
-            })
-        },
-
-        getId(href) {
-            this.playlist.forEach((item, id) => {
-                if (href == item.href) {
-                    return id;
-                }
-            });
-        },
-        modal: {
-            window: document.querySelector("#modalPlayer"),
-            title: document.querySelector(".modal-title"),
-            video: {
-                data: {},
-                player: document.querySelector("#video-player"),
-                setTitle() {
-                    this.data.title = app.domElements.playlist[this.data.id].dataset.bsFile;
-                },
-                setId(href) {
-                    app.domElements.playlist.forEach((item, id) => {
-                        if (href == item.href) {
-                            this.data.id = id;
+        const app = {
+            domElements: {
+                propertiesForm: document.querySelector(".properties"),
+                autoplayCheckbox: document.querySelector("#checkAutoplay"),
+                volumeInput: document.querySelector("#volumeInput"),
+                playRateLabel: document.querySelector("#playRateLabel"),
+                playRateInput: document.querySelector("#playRateInput"),
+                playListLinks: document.querySelector("#playlist").querySelectorAll("a"),
+                playListItems: document.querySelector("#playlist").querySelectorAll("li"),
+                playListDoneItems: document.querySelector("#playlist").querySelectorAll("[data-done]"),
+                playListProgressBars: document.querySelector("#playlist").querySelectorAll(".progress-bar"),
+                timeArray: document.querySelectorAll("[data-time]"),
+                scrollBtn: document.querySelector("#scrollToTop"),
+                renderTime() {
+                    const speed = app.properties.data.speed;
+                    this.timeArray.forEach(elem => {
+                        const time = elem.dataset.time;
+                        let newTime = secondsToHms(changeTimeRate(hmsToSeconds(time),
+                            speed));
+                        if (speed !== 1) {
+                            newTime = time + " / " + newTime
                         }
-                    });
-                },
-                init(href) {
-                    this.setId(href);
-                    this.setTitle();
-                    const data = app.storage.loadData(href);
-                    if (isNotEmptyObject(data)) {
-                        app.storage.setData(data, this.data)
-                    } else {
-                        this.data.progress = this.data.position = 0;
-                    };
-
-                },
-                render() {
-                    this.player.src = app.domElements.playlist[this.data.id].href;
-                    this.player.volume = app.properties.data.volume;
-                    this.player.playbackRate = app.properties.data.speed;
-                    this.setPosition();
-                    app.domElements.modal.title.textContent = this.data.title;
-                    app.domElements.modal.navigate.render();
-
-                },
-                play() {
-                    if (app.properties.data.autoplay) {
-                        this.player.play();
-                    }
-                },
-                pause() {
-                    this.player.pause();
-                },
-                getPosition() {
-                    this.data.position = this.player.currentTime;
-                },
-                setPosition() {
-                    this.player.currentTime = this.data.position;
-                },
-                getProgress() {
-                    if (modal.video.player.duration) {
-                        this.data.progress = this.player.currentTime * 100 / this.player.duration;
-                    }
-                }
-            },
-            navigate: {
-                buttons: [{
-                    elem: document.querySelector("#prev"),
-                    getId(id) {
-                        return id > 0 ? id - 1 : id;
-                    }
-                },
-                {
-                    elem: document.querySelector("#next"),
-                    getId(id) {
-                        return id < app.domElements.playlist.length ? id + 1 : app.domElements
-                        .playlist
-                        .length
-                    }
-                }
-                ],
-                render() {
-                    this.buttons.forEach(item => {
-                        const id = app.domElements.modal.video.data.id;
-                        const playlist = app.domElements.playlist
-
-                        item.elem.href = playlist[item.getId(id)].href;
-                        item.elem.dataset.bsFile = playlist[item.getId(id)].dataset
-                        .bsFile
-
-                        if (item.getId(id) == id) {
-                            item.elem.style.display = 'none'
-                        } else {
-                            item.elem.style.display = ''
-                        }
-
+                        elem.textContent = newTime;
                     })
+                },
+                toScroll() {
+                    this.scrollBtn.blur();
+                    switch (this.scrollBtn.textContent) {
+                        case "Туда!":
+                            app.properties.scrollPosition = document.documentElement.scrollTop;
+                            document.documentElement.scrollTop = 0;
+                            this.scrollBtn.textContent = "Обратно!";
+                            break;
+                        case "Обратно!":
+                            document.documentElement.scrollTop = app.properties.scrollPosition;
+                            app.properties.scrollPosition = 0;
+                            this.scrollBtn.textContent = "Туда!";
+                    };
+                },
+                renderProgressBar(data) {
+                    this.playListProgressBars[data.id].style.width = `${data.progress}%`;
+                },
+                renderDoneElem(data) {
+                    const doneElem = app.domElements.playListDoneItems[data.id];
+                    if (data.done) {
+                        doneElem.classList.remove('fa-square');
+                        doneElem.classList.add('fa-check-square');
+                    } else {
+                        doneElem.classList.add('fa-square');
+                        doneElem.classList.remove('fa-check-square');
+                    }
+                },
+                renderPlayListItems() {
+                    this.playListLinks.forEach((item, id) => {
+                        const data = app.storage.loadData(item.href);
+                        if (isNotEmptyObject(data)) {
+                            if (data.progress) {
+                                this.renderProgressBar(data);
+                            }
+                            if (data.done) {
+                                this.renderDoneElem(data);
+                            }
+
+                        }
+                    })
+                },
+
+                getId(href) {
+                    let result = null;
+                    try {
+                        this.playListLinks.forEach((item, id) => {
+                            if (item.href == href) {
+                                throw new CatchId(id);
+                            }
+                        })
+                    } catch (e) {
+                        if (e instanceof CatchId) {
+                            result = e.id;
+                        } else {
+                            console.error(e);
+                        }
+
+                    }
+                    return result;
+                },
+                modal: {
+                    window: document.querySelector("#modalPlayer"),
+                    title: document.querySelector(".modal-title"),
+                    video: {
+                        data: {},
+                        player: document.querySelector("#video-player"),
+                        setTitle() {
+                            this.data.title = app.domElements.playListLinks[this.data.id].dataset.bsFile;
+                        },
+                        setId(href) {
+                            try {
+                                app.domElements.playListLinks.forEach((item, id) => {
+                                    if (href == item.href) {
+                                        throw id;
+                                    }
+                                });
+                            } catch (e) {
+                                this.id = e;
+                            }
+
+                        },
+                        init(href) {
+                            this.data.id = app.domElements.getId(href);
+                            this.setTitle();
+                            const data = app.storage.loadData(href);
+                            if (isNotEmptyObject(data)) {
+                                app.storage.setData(data, this.data)
+                            } else {
+                                this.data.progress = this.data.position = 0;
+                            };
+                        },
+                        render() {
+                            this.player.src = app.domElements.playListLinks[this.data.id].href;
+                            this.player.volume = app.properties.data.volume;
+                            this.player.playbackRate = app.properties.data.speed;
+                            this.setPosition();
+                            app.domElements.modal.title.textContent = this.data.title;
+                            app.domElements.modal.navigate.render();
+                        },
+                        play() {
+                            if (app.properties.data.autoplay) {
+                                this.player.play();
+                            }
+                        },
+                        pause() {
+                            this.player.pause();
+                        },
+                        getPosition() {
+                            this.data.position = this.player.currentTime;
+                        },
+                        setPosition() {
+                            this.player.currentTime = this.data.position;
+                        },
+                        getProgress() {
+                            if (modal.video.player.duration) {
+                                this.data.progress = this.player.currentTime * 100 / this.player.duration;
+                            }
+                        }
+                    },
+                    navigate: {
+                        buttons: [{
+                                elem: document.querySelector("#prev"),
+                                getId(id) {
+                                    return id > 0 ? id - 1 : id;
+                                }
+                            },
+                            {
+                                elem: document.querySelector("#next"),
+                                getId(id) {
+                                    return id < app.domElements.playListLinks.length ? id + 1 : app.domElements
+                                        .playListLinks
+                                        .length
+                                }
+                            }
+                        ],
+                        render() {
+                            this.buttons.forEach(item => {
+                                const id = app.domElements.modal.video.data.id;
+                                const playListLinks = app.domElements.playListLinks
+
+                                item.elem.href = playListLinks[item.getId(id)].href;
+                                item.elem.dataset.bsFile = playListLinks[item.getId(id)].dataset
+                                    .bsFile
+
+                                if (item.getId(id) == id) {
+                                    item.elem.style.display = 'none'
+                                } else {
+                                    item.elem.style.display = ''
+                                }
+
+                            })
+                        }
+                    }
+
+
+
+                },
+
+            },
+            properties: {
+                data: {},
+                scrollPosition: null,
+                getProp() {
+                    this.data.autoplay = app.domElements.autoplayCheckbox.checked;
+                    this.data.volume = Number(app.domElements.volumeInput.value);
+                    this.data.speed = Number(app.domElements.playRateInput.value);
+                },
+                render() {
+                    app.domElements.autoplayCheckbox.checked = this.data.autoplay;
+                    app.domElements.volumeInput.value = this.data.volume;
+                    app.domElements.playRateLabel.textContent = app.domElements.playRateInput.value = this.data
+                        .speed;
+                }
+
+            },
+            storage: {
+                saveData(key, object) {
+                    const jsonData = JSON.stringify(object);
+                    window.localStorage.setItem(key, jsonData);
+                },
+                loadData(key) {
+                    const jsonData = window.localStorage.getItem(key);
+                    return JSON.parse(jsonData);
+                },
+                setData(data, object) {
+                    for (let key in data) {
+                        object[key] = data[key];
+                    }
+                }
+
+            }
+
+        }
+
+        //Aliases
+        const dom = app.domElements
+        const modal = app.domElements.modal
+        const properties = app.properties
+        const storage = app.storage
+
+        const defaultProperties = {
+            autoplay: true,
+            volume: 1,
+            speed: 1
+        };
+
+
+
+        // Functions
+
+        //пользовательский тип ошибки для перехвата работы forEach и получения id в методе getId
+        function CatchId(id) {
+            this.id = id
+        }
+
+        function isNotEmptyObject(object) {
+            for (let key in object) {
+                return true;
+            }
+            return false;
+        }
+
+        function setScrollBtnDisplay() {
+            const scrollHeight = document.documentElement.scrollTop;
+            const clientHeight = document.documentElement.clientHeight;
+            if (scrollHeight > clientHeight / 2) {
+                dom.scrollBtn.style.display = "inline-block";
+            } else {
+                if (properties.scrollPosition === null) {
+                    dom.scrollBtn.style.display = "none";
+                    properties.scrollPosition = 0;
                 }
             }
-
-
-
-        },
-
-    },
-    properties: {
-        data: {},
-        scrollPosition: null,
-        getProp() {
-            this.data.autoplay = app.domElements.autoplayCheckbox.checked;
-            this.data.volume = Number(app.domElements.volumeInput.value);
-            this.data.speed = Number(app.domElements.playRateInput.value);
-        },
-        render() {
-            app.domElements.autoplayCheckbox.checked = this.data.autoplay;
-            app.domElements.volumeInput.value = this.data.volume;
-            app.domElements.playRateLabel.textContent = app.domElements.playRateInput.value = this.data
-            .speed;
         }
 
-    },
-    storage: {
-        saveData(key, object) {
-            const jsonData = JSON.stringify(object);
-            window.localStorage.setItem(key, jsonData);
-        },
-        loadData(key) {
-            const jsonData = window.localStorage.getItem(key);
-            return JSON.parse(jsonData);
-        },
-        setData(data, object) {
-            for (let key in data) {
-                object[key] = data[key];
+        function loadPlayer(href) {
+            modal.video.init(href);
+            modal.video.render();
+        }
+
+        function onPlayListItemClick(e) {
+            //i done element
+            if (e.target && e.target.dataset.done !== undefined) {
+                const li = e.target.closest('li');
+                const href = li.querySelector('a').href
+                const data = storage.loadData(href) || {}
+
+                data.id = dom.getId(href);
+                data.done = !data.done
+                dom.renderDoneElem(data);
+                storage.saveData(href, data);
             }
+            //
         }
 
-    }
-
-}
-
-//Aliases
-const dom = app.domElements
-const modal = app.domElements.modal
-const properties = app.properties
-const storage = app.storage
-
-const defaultProperties = {
-    autoplay: true,
-    volume: 1,
-    speed: 1
-};
 
 
-
-// Functions
-
-function isNotEmptyObject(object) {
-    for (let key in object) {
-        return true;
-    }
-    return false;
-}
-
-function setScrollBtnDisplay() {
-    const scrollHeight = document.documentElement.scrollTop;
-    const clientHeight = document.documentElement.clientHeight;
-    if (scrollHeight > clientHeight / 2) {
-        dom.scrollBtn.style.display = "inline-block";
-    } else {
-        if (properties.scrollPosition === null) {
-            dom.scrollBtn.style.display = "none";
-            properties.scrollPosition = 0;
+        // Time utilites
+        function changeTimeRate(seconds, rate) {
+            return Math.floor(seconds / rate);
         }
-    }
-}
 
-function loadPlayer(href) {
-    modal.video.init(href);
-    modal.video.render();
-}
+        function hmsToSeconds(time) {
+            const hours = +time.slice(0, 2);
+            const seconds = +time.slice(6, 8);
+            const minutes = +time.slice(3, 5);
+            return (hours * 3600) + (minutes * 60) + seconds;
+        }
 
-// Time utilites
-function changeTimeRate(seconds, rate) {
-    return Math.floor(seconds / rate);
-}
+        function secondsToHms(time) {
+            let hours = format2digit(Math.trunc(time / 3600));
+            let minutes = format2digit(Math.trunc(time % 3600 / 60));
+            let seconds = format2digit(time % 60);
+            return `${hours}:${minutes}:${seconds}`;
+        }
 
-function hmsToSeconds(time) {
-    const hours = +time.slice(0, 2);
-    const seconds = +time.slice(6, 8);
-    const minutes = +time.slice(3, 5);
-    return (hours * 3600) + (minutes * 60) + seconds;
-}
+        function format2digit(number) {
+            let result = number;
+            if (number.toString().length < 2) {
+                result = `0${number}`;
+            }
+            return result;
+        }
 
-function secondsToHms(time) {
-    let hours = format2digit(Math.trunc(time / 3600));
-    let minutes = format2digit(Math.trunc(time % 3600 / 60));
-    let seconds = format2digit(time % 60);
-    return `${hours}:${minutes}:${seconds}`;
-}
+        //Events
+        document.addEventListener('DOMContentLoaded', (e) => {
+            const data = storage.loadData('properties');
+            if (isNotEmptyObject(data)) {
+                storage.setData(data, properties.data);
+            } else {
+                //set default properties
+                properties.data = defaultProperties;
+                storage.saveData('properties', properties.data);
+            }
+            properties.render();
+            dom.renderTime();
+            dom.renderPlayListItems();
 
-function format2digit(number) {
-    let result = number;
-    if (number.toString().length < 2) {
-        result = `0${number}`;
-    }
-    return result;
-}
+        })
 
-//Events
-document.addEventListener('DOMContentLoaded', (e) => {
-    const data = storage.loadData('properties');
-    if (isNotEmptyObject(data)) {
-        storage.setData(data, properties.data);
-    } else {
-//set default properties
-properties.data = defaultProperties;
-storage.saveData('properties', properties.data);
-}
-properties.render();
-dom.renderTime();
-dom.renderProgressBarsAll();
+        document.addEventListener('scroll', setScrollBtnDisplay);
 
-})
+        dom.scrollBtn.addEventListener('click', (e) => {
+            dom.toScroll();
+        })
 
-document.addEventListener("scroll", setScrollBtnDisplay);
+        dom.playListItems.forEach(item => {
+            item.addEventListener('click', e => {
+                onPlayListItemClick(e);
+            })
+        })
 
-dom.scrollBtn.addEventListener('click', (e) => {
-    dom.toScroll();
-})
+        modal.window.addEventListener('hide.bs.modal', (e) => {
+            modal.video.pause();
+        })
 
-modal.window.addEventListener("hide.bs.modal", (e) => {
-    modal.video.pause();
-})
+        modal.window.addEventListener('show.bs.modal', (e) => {
+            loadPlayer(e.relatedTarget.href);
+        })
 
-modal.window.addEventListener("show.bs.modal", (e) => {
-    loadPlayer(e.relatedTarget.href);
-})
-
-modal.navigate.buttons.forEach(btn => {
-    btn.elem.addEventListener('click', (e) => {
-        e.preventDefault();
-        loadPlayer(e.target.href);
-    })
-})
+        modal.navigate.buttons.forEach(btn => {
+            btn.elem.addEventListener('click', (e) => {
+                e.preventDefault();
+                loadPlayer(e.target.href);
+            })
+        })
 
 
-dom.propertiesForm.addEventListener('input', (e) => {
-    properties.getProp();
-    storage.saveData('properties', properties.data);
-    properties.render();
+        dom.propertiesForm.addEventListener('input', (e) => {
+            properties.getProp();
+            storage.saveData('properties', properties.data);
+            properties.render();
 
-    if (e.target.id == 'playRateInput') {
-        dom.renderTime();
-    }
+            if (e.target.id == 'playRateInput') {
+                dom.renderTime();
+            }
 
-})
+        })
 
-modal.video.player.addEventListener('loadedmetadata', (e) => {
-    modal.video.play();
+        modal.video.player.addEventListener('loadedmetadata', (e) => {
+            modal.video.play();
 
-})
+        })
 
-modal.video.player.addEventListener('timeupdate', (e) => {
-    modal.video.getPosition();
-    modal.video.getProgress();
-    dom.renderProgressBar(e.target.herf);
-    storage.saveData(modal.video.player.src, modal.video.data);
-})
+        modal.video.player.addEventListener('timeupdate', (e) => {
+            modal.video.getPosition();
+            modal.video.getProgress();
+            dom.renderProgressBar(modal.video.data);
+            storage.saveData(modal.video.player.src, modal.video.data);
+        })
 
-modal.video.player.addEventListener('ended', (e) => {
-    if (modal.video.id < dom.playlist.length && properties.autoplay) {
-        modal.video.id++;
-        modal.video.render();
-    }
-})
-</script>
+        modal.video.player.addEventListener('ended', (e) => {
+            const id = modal.video.data.id
+            modal.video.data.done = true;
+            dom.renderDoneElem(modal.video.data);
+            storage.saveData(modal.video.player.src, modal.video.data);
+            if (id < dom.playListLinks.length && properties.data.autoplay) {
+                loadPlayer(dom.playListLinks[id + 1].href);
+            }
+        })
+    </script>
 
 
 </body>
