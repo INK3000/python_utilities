@@ -10,48 +10,120 @@
     <style type="text/css">
         li {
             list-style-type: none;
-            margin-bottom: 0.7rem;
+            margin: 0.5rem 0;
+
         }
-        
+
+        .notes-list {
+            font-size: 0.7rem;
+            border-bottom: dotted gray 1px;
+
+        }
+
+        .notes-list span[data-note-time],
+        .notes-list i {
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        #clear-storage{
+            margin-top: 350px;
+        }
     </style>
     
 </head>
 <body>
     <!-- Modal -->
     <div class="modal fade " id="modalPlayer" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog modal-xl ">
             <div class="modal-content">
                 <div class="modal-header">
+                    <h5 class="modal-title"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
                     <div class="container-fluid">
                         <div class="row">
-                            <div class="col-12">
-                                <div class="callout">
-                                    <h5 class="modal-title"></h5>
-                                    <div class="responsive-embed widescreen">
+                            <div class="col-3 d-none" id="notes">
+                                <!--tablist-->
+                                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="notes-add-tab" data-bs-toggle="tab"
+                                            data-bs-target="#notes-add" type="button" role="tab"
+                                            aria-controls="notes-add" aria-selected="true">Новая</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="notes-all-tab" data-bs-toggle="tab"
+                                            data-bs-target="#notes-all" type="button" role="tab"
+                                            aria-controls="notes-all" aria-selected="false">Все заметки</button>
+                                    </li>
+                                </ul>
+                                <div class="tab-content" id="myTabContent">
+                                    <div class="tab-pane fade show active overflow-auto" id="notes-add" role="tabpanel"
+                                        aria-labelledby="home-tab">
+                                        <form action="" id="note-form">
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text" id="note-time-label"></span>
+                                                <input type="text" class="form-control" placeholder="Заголовок"
+                                                    aria-label="Note-Title" id="note-title">
 
-                                        <video controls class=" img-fluid" id="video-player" src="">
-                                            Your browser does not support the video element.
-                                        </video>
+                                            </div>
+                                            <div class="input-group mb-3">
+                                                <textarea class="form-control" placeholder="Текст заметки"
+                                                    aria-label="Note-Title" id="note-text"></textarea>
+
+                                            </div>
+                                            <div class="input-group mb-3">
+                                                <button type="submit" class="btn btn-secondary"
+                                                    id="note-save-btn">Сохранить</button>
+                                            </div>
+                                        </form>
+
                                     </div>
-                                    <div class="d-flex justify-content-between" id="pagination">
-                                        <a class="btn btn-secondary" href="#" target="_blank" id="prev">Предыдущее
-                                            видео</a>
-                                        <a class="btn btn-secondary ms-auto" href="#" target="_blank"
-                                            id="next">Следующее видео</a>
+                                    <div class="tab-pane fade overflow-auto" id="notes-all" role="tabpanel"
+                                        aria-labelledby="notes-all">
+                                        <ul>
+
+                                        </ul>
                                     </div>
                                 </div>
+                                <!--/tablist-->
+
+
+
+                            </div>
+                            <div class="col-12 text-center" id="player-block">
+
+
+                                <!-- <div class="responsive-embed widescreen"> -->
+                                <video controls class=" img-fluid" id="video-player" src=""
+                                    style="max-width: 90%; margin: auto;">
+                                    Your browser does not support the video element.
+                                </video>
+                                <!-- </div> -->
+
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-footer">
+                    <div class="row container-fluid">
+                        <div class="d-flex justify-content-center" id="pagination">
+                            <a class="btn btn-secondary" href="#" target="_blank" id="prev">Предыдущее
+                                видео</a>
+                            <a class="btn btn-secondary ms-auto" href="#" target="_blank"
+                                id="notes-btn-open">Заметки</a>
+                            <a class="btn btn-secondary ms-auto" href="#" target="_blank" id="next">Следующее видео</a>
+                        </div>
+                    </div>
+
                 </div>
 
 
             </div>
         </div>
     </div>
-
     <!-- Video playlist -->
     <div class="container">
 
@@ -90,7 +162,13 @@
             {%block content%}
 
             {%endblock%}
+
+            <button type="button" class="btn btn-danger" id="clear-storage">Очистить локальное хранилище</button>
+            <h4>Из браузера УДАЛИТСЯ информация о состоянии просмотра, заметки, настройки скорости, громкости и воспроизведения установятся в значения по-умолчанию. Операция необратима!!!</h4>
+
         </div>
+
+
 
 
         <div style="position: fixed; right: 30px; bottom: 20px; z-index: 1030;">
@@ -118,6 +196,7 @@
                 playListProgressBars: document.querySelector("#playlist").querySelectorAll(".progress-bar"),
                 timeArray: document.querySelectorAll("[data-time]"),
                 scrollBtn: document.querySelector("#scrollToTop"),
+                clearStorageBtn: document.querySelector("#clear-storage"),
                 renderTime() {
                     const speed = app.properties.data.speed;
                     this.timeArray.forEach(elem => {
@@ -193,6 +272,45 @@
                 modal: {
                     window: document.querySelector("#modalPlayer"),
                     title: document.querySelector(".modal-title"),
+                    playerBlock: document.querySelector("#player-block"),
+                    notesOpenBtn: document.querySelector("#notes-btn-open"),
+                    notesBlock: document.querySelector("#notes"),
+                    noteTitle: document.querySelector("#note-title"),
+                    noteBody: document.querySelector("#note-form").querySelector("textarea"),
+                    noteTimeLabel: document.querySelector("#note-time-label"),
+                    noteSaveBtn: document.querySelector("#note-save-btn"),
+                    notesAddBlock: document.querySelector("#notes-add"),
+                    notesList: document.querySelector("#notes-all ul"),
+                    notesMessage: {
+                        success: {
+                            text: "Заметка была сохранена. Кликните \"Все заметки\", чтобы увидеть свои заметки.",
+                            class: "alert-success"
+                        },
+                        error: {
+                            text: "Уже существует заметка с такой меткой времени",
+                            class: "alert-warning"
+                        }
+                    },
+                    renderNotes(parent, data) {
+                        let html = '';
+                        data.sort((a, b) => a.time - b.time).forEach((data, id) => {
+                            html +=
+                                `<li class="notes-list position-relative" data-note-id=${id}>
+                                    <span class="fw-bold text-primary" data-note-time>${secondsToHms(Math.round(data.time))}</span> <span class="text-uppercase" data-note-title>${data.title}</span>
+                                    <p>${data.note}</p><i class="far fa-trash-alt position-absolute bottom-50 end-0" data-note-remove></i> 
+                                </li>`
+                        })
+                        parent.innerHTML = html;
+                    },
+                    showNotesMessage(parent, message) {
+                        const elem = document.createElement('div');
+                        elem.classList.add('alert', message.class);
+                        elem.textContent = message.text;
+                        parent.append(elem);
+                        setTimeout(() => {
+                            elem.remove();
+                        }, 2000);
+                    },
                     video: {
                         data: {},
                         player: document.querySelector("#video-player"),
@@ -218,7 +336,10 @@
                             if (isNotEmptyObject(data)) {
                                 app.storage.setData(data, this.data)
                             } else {
-                                this.data.progress = this.data.position = 0;
+                                this.data.progress = 0;
+                                this.data.position = 0;
+                                this.data.done = false;
+                                this.data.notes = [];
                             };
                         },
                         render() {
@@ -228,6 +349,8 @@
                             this.setPosition();
                             app.domElements.modal.title.textContent = this.data.title;
                             app.domElements.modal.navigate.render();
+                            app.domElements.modal.renderNotes(app.domElements.modal.notesList, this.data.notes);
+
                         },
                         play() {
                             if (app.properties.data.autoplay) {
@@ -382,7 +505,68 @@
                 dom.renderDoneElem(data);
                 storage.saveData(href, data);
             }
-            //
+        }
+
+        function onNotesOpenBtnClick(e) {
+            e.preventDefault();
+            if (modal.notesBlock.classList.contains("d-none")) {
+                modal.playerBlock.classList.add("col-9");
+                modal.playerBlock.classList.remove("col-12");
+            } else {
+                modal.playerBlock.classList.remove("col-9");
+                modal.playerBlock.classList.add("col-12");
+            }
+            modal.notesBlock.classList.toggle("d-none");
+            modal.noteTimeLabel.textContent = secondsToHms(Math.round(modal.video.data.position))
+        }
+
+
+
+        function onNoteSaveBtnClick(e) {
+            e.preventDefault();
+            e.target.blur();
+            const data = {
+                time: modal.video.data.position,
+                title: modal.noteTitle.value,
+                note: modal.noteBody.value,
+            }
+            const idOfTime = modal.video.data.notes.findIndex(obj => {
+                return obj.time == data.time
+
+            })
+
+            if (idOfTime < 0) {
+                modal.video.data.notes.push(data);
+                storage.saveData(modal.video.player.src, modal.video.data);
+                modal.renderNotes(modal.notesList, modal.video.data.notes);
+                modal.showNotesMessage(modal.notesAddBlock, modal.notesMessage.success);
+                modal.noteTitle.value = modal.noteBody.value = ''
+            } else {
+                modal.showNotesMessage(modal.notesAddBlock, modal.notesMessage.error)
+            }
+
+        }
+
+        function onNotesListClick(e) {
+            const id = e.target.closest('li').dataset.noteId;
+            if (e.target && e.target.dataset.noteTime !== undefined) {
+                modal.video.player.currentTime = modal.video.data.notes[id].time;
+                if (properties.data.autoplay) {
+                    modal.video.play();
+                }
+            };
+            if (e.target && e.target.dataset.noteRemove !== undefined) {
+                modal.video.data.notes.splice(id, 1);
+                storage.saveData(modal.video.player.src, modal.video.data);
+                modal.renderNotes(modal.notesList, modal.video.data.notes);
+
+            }
+
+        }
+
+        function onClearStorageBtnClick(e) {
+            window.localStorage.clear();
+            console.log('storage was cleared');
         }
 
 
@@ -436,6 +620,10 @@
             dom.toScroll();
         })
 
+        dom.clearStorageBtn.addEventListener('click', (e) => {
+            onClearStorageBtnClick(e);
+        })
+
         dom.playListItems.forEach(item => {
             item.addEventListener('click', e => {
                 onPlayListItemClick(e);
@@ -479,6 +667,9 @@
             modal.video.getProgress();
             dom.renderProgressBar(modal.video.data);
             storage.saveData(modal.video.player.src, modal.video.data);
+            if (!modal.notesBlock.classList.contains(".d-none")) {
+                modal.noteTimeLabel.textContent = secondsToHms(Math.round(modal.video.data.position))
+            }
         })
 
         modal.video.player.addEventListener('ended', (e) => {
@@ -489,6 +680,18 @@
             if (id < dom.playListLinks.length && properties.data.autoplay) {
                 loadPlayer(dom.playListLinks[id + 1].href);
             }
+        })
+
+        modal.notesOpenBtn.addEventListener('click', (e) => {
+            onNotesOpenBtnClick(e);
+        })
+
+        modal.noteSaveBtn.addEventListener('click', (e) => {
+            onNoteSaveBtnClick(e);
+        })
+
+        modal.notesList.addEventListener('click', (e) => {
+            onNotesListClick(e);
         })
     </script>
 
