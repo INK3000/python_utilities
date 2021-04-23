@@ -314,24 +314,9 @@
                     video: {
                         data: {},
                         player: document.querySelector("#video-player"),
-                        setTitle() {
-                            this.data.title = app.domElements.playListLinks[this.data.id].dataset.bsFile;
-                        },
-                        setId(href) {
-                            try {
-                                app.domElements.playListLinks.forEach((item, id) => {
-                                    if (href == item.href) {
-                                        throw id;
-                                    }
-                                });
-                            } catch (e) {
-                                this.id = e;
-                            }
-
-                        },
-                        init(href) {
+                        init(href, position) {
                             this.data.id = app.domElements.getId(href);
-                            this.setTitle();
+                            this.data.title = app.domElements.playListLinks[this.data.id].dataset.bsFile;
                             const data = app.storage.loadData(href);
                             if (isNotEmptyObject(data)) {
                                 app.storage.setData(data, this.data)
@@ -341,6 +326,11 @@
                                 this.data.done = false;
                                 this.data.notes = [];
                             };
+                            if (position) {
+                                // TODO убрать вывод, когда доделаю заметки
+                                console.log(position);
+                                this.data.position = position;
+                            }
                         },
                         render() {
                             this.player.src = app.domElements.playListLinks[this.data.id].href;
@@ -488,13 +478,12 @@
             }
         }
 
-        function loadPlayer(href) {
-            modal.video.init(href);
+        function loadPlayer(href, position = false) {
+            modal.video.init(href, position);
             modal.video.render();
         }
 
         function onPlayListItemClick(e) {
-            //i done element
             if (e.target && e.target.dataset.done !== undefined) {
                 const li = e.target.closest('li');
                 const href = li.querySelector('a').href
@@ -635,7 +624,11 @@
         })
 
         modal.window.addEventListener('show.bs.modal', (e) => {
-            loadPlayer(e.relatedTarget.href);
+            let position = null;
+            if (e.relatedTarget.dataset.position) {
+                position = e.relatedTarget.dataset.position;
+            }
+            loadPlayer(e.relatedTarget.href, position);
         })
 
         modal.navigate.buttons.forEach(btn => {
