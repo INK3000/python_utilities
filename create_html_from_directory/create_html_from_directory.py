@@ -53,7 +53,6 @@ class VideoFile:
         VideoFile._total_duration = None
         VideoFile._total_count = None
 
-
     @classmethod
     @property
     def total_duration(cls):
@@ -131,7 +130,7 @@ def create_video(files):
 
 def get_video_files_to_dict(path):
     root, directories, files = next(os.walk(path))  # for get root_lvl directories and root_lvl files
-
+    print(root, directories, files)
     if files:  # in root
         VideoFile.root = root
         VideoFile.directory_key = root

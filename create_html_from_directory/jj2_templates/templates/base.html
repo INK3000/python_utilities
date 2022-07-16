@@ -646,10 +646,9 @@
         }
 
         function hmsToSeconds(time) {
-            const hours = +time.slice(0, 2);
-            const seconds = +time.slice(6, 8);
-            const minutes = +time.slice(3, 5);
-            return (hours * 3600) + (minutes * 60) + seconds;
+            const [hours, minutes, seconds] = time.split(":");
+            const result = (Number(hours) * 3600) + (Number(minutes) * 60) + Number(seconds);
+            return result
         }
 
         function secondsToHms(time) {
@@ -660,12 +659,13 @@
         }
 
         function format2digit(number) {
-            let result = number;
+            let result = `${number}`;;
             if (number.toString().length < 2) {
                 result = `0${number}`;
             }
             return result;
         }
+
 
         //Events
         document.addEventListener('DOMContentLoaded', (e) => {
