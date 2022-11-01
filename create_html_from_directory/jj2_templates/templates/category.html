@@ -6,22 +6,31 @@
     {% for root in video_files_dict %}
         <div class="row py-3">
             <div class="col-12">
-                <h5> {{ os.path.basename(root) }} <span class="badge rounded-pill bg-light text-dark"> {{ hms(sum(video_files_dict[root]))}}</span></h5>
+                <h5> {{ os.path.basename(root) }} <span class="badge rounded-pill bg-light text-dark" data-time="{{ hms(sum(video_files_dict[root]))}}"> {{ hms(sum(video_files_dict[root]))}}</span></h5>
                 <ul class="px-5">
                 {% for file in video_files_dict[root] %}
 
-                    <li>
-                    <a class="link-secondary" target="_blank" href="{{file.relpath}}" data-bs-toggle="modal" data-bs-target="#ModalPlayer" data-bs-file="{{file.relpath}}">{{file.filename}} <span class="badge rounded-pill bg-light text-dark" data-time="{{hms(file.duration)}}">{{hms(file.duration)}}</span>
-                    <div class="progress" style="height: 5px;">
-                        <div class="progress-bar " role="progressbar"></div>
-                    </div> 
-                    </a>
+                    <li class="row">
+                        <div class="col-1"><i data-done class="far fa-square"></i></div>
+                        <div class="col-11">
+                            <a class="link-secondary" target="_blank" href="{{file.relpath}}" data-bs-toggle="modal" data-bs-target="#modalPlayer" data-bs-file="{{file.relpath}}">{{file.filename}} <span class="badge rounded-pill bg-light text-dark" data-time="{{hms(file.duration)}}">{{hms(file.duration)}}</span>
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar " role="progressbar"></div>
+                            </div> 
+                            </a>
+                        </div>   
+
+                    
 
                     </li>
                     
                 
                 {% endfor %}
                 </ul>
+
+
+                    
+
             </div>
         </div>
  {% endfor %}

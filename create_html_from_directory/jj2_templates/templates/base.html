@@ -2,62 +2,173 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
+    <script src="https://kit.fontawesome.com/837ddb964a.js" crossorigin="anonymous"></script>
     {%block title%}
     <title>{{ path }}</title>
     {%endblock%}
     <style type="text/css">
+        .as-block {
+            display: block;
+        }
+
         li {
             list-style-type: none;
-            margin-bottom: 0.7rem;
+            margin: 0.5rem 0;
+
         }
-        
+
+        .notes-list {
+            font-size: 0.7rem;
+            border-bottom: dotted gray 1px;
+
+        }
+
+        .notes-list span[data-note-time],
+        .notes-list i {
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .offcanvas-body ul:nth-child(even) {
+            background-color: rgb(240, 240, 240);
+        }
+
+        #clear-storage {
+            margin-top: 350px;
+        }
     </style>
     
 </head>
 <body>
+
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNotes" aria-labelledby="offcanvasNotesLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasNotesLabel">Заметки</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div>
+                <ul></ul>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Modal -->
-    <div class="modal fade " id="ModalPlayer" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
+    <div class="modal fade " id="modalPlayer" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl ">
             <div class="modal-content">
                 <div class="modal-header">
+                    <h5 class="modal-title"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
                     <div class="container-fluid">
                         <div class="row">
-                            <div class="col-12">
-                                <div class="callout">
-                                    <h5 class="modal-title"></h5>
-                                    <div class="responsive-embed widescreen">
+                            <div class="col-3 d-none" id="notes">
+                                <!--tablist-->
+                                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="notes-add-tab" data-bs-toggle="tab"
+                                            data-bs-target="#notes-add" type="button" role="tab"
+                                            aria-controls="notes-add" aria-selected="true">Новая</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="notes-all-tab" data-bs-toggle="tab"
+                                            data-bs-target="#notes-all" type="button" role="tab"
+                                            aria-controls="notes-all" aria-selected="false">Все заметки</button>
+                                    </li>
+                                </ul>
+                                <div class="tab-content" id="myTabContent">
+                                    <div class="tab-pane fade show active overflow-auto" id="notes-add" role="tabpanel"
+                                        aria-labelledby="home-tab">
+                                        <form action="" id="note-form">
+                                            <div class="input-group mb-3">
+                                                <span class="input-group-text" id="note-time-label"></span>
+                                                <input type="text" class="form-control" placeholder="Заголовок"
+                                                    aria-label="Note-Title" id="note-title">
 
-                                        <video controls class=" img-fluid" id="video-player" src = "">
-                                            Your browser does not support the video element.
-                                        </video>
+                                            </div>
+                                            <div class="input-group mb-3">
+                                                <textarea class="form-control" placeholder="Текст заметки"
+                                                    aria-label="Note-Title" id="note-text"></textarea>
+
+                                            </div>
+                                            <div class="input-group mb-3">
+                                                <button type="submit" class="btn btn-secondary"
+                                                    id="note-save-btn">Сохранить</button>
+                                            </div>
+                                        </form>
+
                                     </div>
-                                    <div class="d-flex justify-content-between" id="pagination" >
-                                        <a class="btn btn-secondary" href="#" target="_blank"  id="prev">Предыдущее видео</a>
-                                        <a class="btn btn-secondary ms-auto" href="#" target="_blank"  id="next">Следующее видео</a>
+                                    <div class="tab-pane fade overflow-auto" id="notes-all" role="tabpanel"
+                                        aria-labelledby="notes-all">
+                                        <ul>
+
+                                        </ul>
                                     </div>
                                 </div>
+                                <!--/tablist-->
+
+
+
+                            </div>
+                            <div class="col-12 text-center" id="player-block">
+
+
+                                <!-- <div class="responsive-embed widescreen"> -->
+                                <video controls class=" img-fluid" id="video-player" src=""
+                                    style="max-width: 90%; margin: auto;">
+                                    Your browser does not support the video element.
+                                </video>
+                                <!-- </div> -->
+
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-footer">
+                    <div class="row container-fluid">
+                        <div class="d-flex justify-content-center" id="pagination">
+                            <a class="btn btn-secondary" href="#" target="_blank" id="prev">Предыдущее
+                                видео</a>
+                            <a class="btn btn-secondary ms-auto" href="#" target="_blank"
+                                id="notes-btn-open">Заметки</a>
+                            <a class="btn btn-secondary ms-auto" href="#" target="_blank" id="next">Следующее видео</a>
+                        </div>
+                    </div>
+
                 </div>
 
 
             </div>
         </div>
     </div>
-
     <!-- Video playlist -->
     <div class="container">
 
-       <div class="row py-3">
-           <div class="col-12">
-            <h2>{{ path }}</h2>
-            <a href="." target="_blank">Открыть директорию в браузере</a>
-            <p>Общее время: <span data-time="{{ total_duration }}">{{ total_duration }}</span></p>   
-                <div class="form-check">
+        <h1>{{ path }}</h1>
+        <div class="row py-3 border">
+            <div class="col-12">
+                <div class="row p-3">
+                    <div class="col-4">
+                        <p>Общее время: <span data-time="{{ total_duration }}">{{ total_duration }}</span></p>
+                    </div>
+                    <div class="col-4">
+                        <a class="as-block" href="." target="_blank">Открыть директорию в браузере</a>
+                    </div>
+                    <div class="col-4">
+                        <a class="as-block" data-bs-toggle="offcanvas" href="#offcanvasNotes" role="button"
+                            aria-controls="offcanvasNotes">
+                            Заметки</a>
+                    </div>
+                </div>
+
+                <div class="properties">
                     <div class="row">
                         <div class="col-4">
                             <input class="form-check-input" type="checkbox" value="" id="checkAutoplay" checked>
@@ -68,13 +179,13 @@
                         <div class="col-4">
                             <label for="customRange3" class="form-label">Скорость
                                 воспроизведения <span id="playRateLabel"></span></label>
-                                <input type="range" class="form-range" min="0.5" max="2" step="0.25" id="playRateInput"
+                            <input type="range" class="form-range" min="0.5" max="2" step="0.25" id="playRateInput"
                                 value="1.5">
                         </div>
                         <div class="col-4">
                             <label for="customRange3" class="form-label">Громкость <span
-                                id="volumeLabel"></span></label>
-                                <input type="range" class="form-range" min="0" max="1" step="0.1" id="volumeInput"
+                                    id="volumeLabel"></span></label>
+                            <input type="range" class="form-range" min="0" max="1" step="0.1" id="volumeInput"
                                 value="1">
                         </div>
                     </div>
@@ -87,295 +198,457 @@
             {%block content%}
 
             {%endblock%}
+
+            <button type="button" class="btn btn-danger" id="clear-storage">Очистить локальное хранилище</button>
+            <h4>Из браузера УДАЛИТСЯ информация о состоянии просмотра, заметки, настройки скорости, громкости и воспроизведения установятся в значения по-умолчанию. Операция необратима!!!</h4>
+
         </div>
+
+
 
 
         <div style="position: fixed; right: 30px; bottom: 20px; z-index: 1030;">
             <button class="btn btn-light" id="scrollToTop" type="button" style="display: none;">Туда!</button>
         </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>    
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8" crossorigin="anonymous"></script>
+ 
 
 
-        <!-- Open link in modal  -->
+
 
 
     <script>
         "use strict";
 
-        const video = document.getElementById("video-player"),
-            exampleModal = document.getElementById("ModalPlayer"),
-            modalTitle = exampleModal.querySelector(".modal-title"),
-            playlist = document.getElementById("playlist"),
-            playListLinks = playlist.getElementsByTagName("a"),
-            autoplayCheckbox = document.getElementById("checkAutoplay"),
-            formCheck = document.getElementsByClassName("form-check")[0],
-            prevLink = document.getElementById("prev"),
-            nextLink = document.getElementById("next"),
-            scrollToTop = document.getElementById("scrollToTop"),
-            volumeInput = document.getElementById("volumeInput"),
-            playRateLabel = document.getElementById("playRateLabel"),
-            playRateInput = document.getElementById("playRateInput");
+        const app = {
+            domElements: {
+                propertiesForm: document.querySelector(".properties"),
+                autoplayCheckbox: document.querySelector("#checkAutoplay"),
+                volumeInput: document.querySelector("#volumeInput"),
+                playRateLabel: document.querySelector("#playRateLabel"),
+                playRateInput: document.querySelector("#playRateInput"),
+                playListLinks: document.querySelector("#playlist").querySelectorAll("a"),
+                playListItems: document.querySelector("#playlist").querySelectorAll("li"),
+                playListDoneItems: document.querySelector("#playlist").querySelectorAll("[data-done]"),
+                playListProgressBars: document.querySelector("#playlist").querySelectorAll(".progress-bar"),
+                notesOffCanvas: new bootstrap.Offcanvas(document.querySelector(".offcanvas")),
+                notesOffCanvasList: document.querySelector('.offcanvas-body ul'),
+                timeArray: document.querySelectorAll("[data-time]"),
+                scrollBtn: document.querySelector("#scrollToTop"),
+                clearStorageBtn: document.querySelector("#clear-storage"),
+                renderTime() {
+                    const speed = app.properties.data.speed;
+                    this.timeArray.forEach(elem => {
+                        const time = elem.dataset.time;
+                        let newTime = secondsToHms(changeTimeRate(hmsToSeconds(time),
+                            speed));
+                        if (speed !== 1) {
+                            newTime = time + " / " + newTime
+                        }
+                        elem.textContent = newTime;
+                    })
+                },
+                toScroll() {
+                    this.scrollBtn.blur();
+                    switch (this.scrollBtn.textContent) {
+                        case "Туда!":
+                            app.properties.scrollPosition = document.documentElement.scrollTop;
+                            document.documentElement.scrollTop = 0;
+                            this.scrollBtn.textContent = "Обратно!";
+                            break;
+                        case "Обратно!":
+                            document.documentElement.scrollTop = app.properties.scrollPosition;
+                            app.properties.scrollPosition = 0;
+                            this.scrollBtn.textContent = "Туда!";
+                    };
+                },
+                renderProgressBar(data) {
+                    this.playListProgressBars[data.id].style.width = `${data.progress}%`;
+                },
+                renderDoneElem(data) {
+                    const doneElem = app.domElements.playListDoneItems[data.id];
+                    if (data.done) {
+                        doneElem.classList.remove('fa-square');
+                        doneElem.classList.add('fa-check-square');
+                    } else {
+                        doneElem.classList.add('fa-square');
+                        doneElem.classList.remove('fa-check-square');
+                    }
+                },
+                renderPlayListItems() {
+                    this.playListLinks.forEach((item, id) => {
+                        const data = app.storage.loadData(item.href);
+                        if (isNotEmptyObject(data)) {
+                            if (data.progress) {
+                                this.renderProgressBar(data);
+                            }
+                            if (data.done) {
+                                this.renderDoneElem(data);
+                            }
+
+                        }
+                    })
+                },
+                renderOffCanvasNotes() {
+                    const links = app.domElements.playListLinks;
+                    const notes = [];
+                    let notesListHTML = '';
+
+                    links.forEach(link => {
+                        const obj = JSON.parse(window.localStorage.getItem(link.href));
+                        if (obj && obj.notes.length > 0) {
+                            notes.push({
+                                link: link,
+                                title: obj.title,
+                                notes: obj.notes,
+                            });
+                        }
+                    })
+                    notes.forEach(item => {
+                        notesListHTML += `<li>${item.title}</li>`
+                        item.notes.forEach(note => {
+                            notesListHTML +=
+                                `<li><a href="${item.link}"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalPlayer"
+                                    data-bs-file="${note.title}"
+                                    data-position=${note.time}>${secondsToHms(Math.round(note.time))} ${note.title? note.title:" "} ${note.note?"("+note.title+")": ""}</a></li>`;
+                        })
+
+                    })
+                    this.notesOffCanvasList.innerHTML = notesListHTML;
+                },
+
+                getId(href) {
+                    let result = null;
+                    try {
+                        this.playListLinks.forEach((item, id) => {
+                            if (item.href == href) {
+                                throw new CatchId(id);
+                            }
+                        })
+                    } catch (e) {
+                        if (e instanceof CatchId) {
+                            result = e.id;
+                        } else {
+                            console.error(e);
+                        }
+
+                    }
+                    return result;
+                },
+                modal: {
+                    window: document.querySelector("#modalPlayer"),
+                    title: document.querySelector(".modal-title"),
+                    playerBlock: document.querySelector("#player-block"),
+                    notesOpenBtn: document.querySelector("#notes-btn-open"),
+                    notesBlock: document.querySelector("#notes"),
+                    noteTitle: document.querySelector("#note-title"),
+                    noteBody: document.querySelector("#note-form").querySelector("textarea"),
+                    noteTimeLabel: document.querySelector("#note-time-label"),
+                    noteSaveBtn: document.querySelector("#note-save-btn"),
+                    notesAddBlock: document.querySelector("#notes-add"),
+                    notesList: document.querySelector("#notes-all ul"),
+                    notesMessage: {
+                        success: {
+                            text: "Заметка была сохранена. Кликните \"Все заметки\", чтобы увидеть свои заметки.",
+                            class: "alert-success"
+                        },
+                        error: {
+                            text: "Уже существует заметка с такой меткой времени",
+                            class: "alert-warning"
+                        }
+                    },
+                    renderNotes(parent, data) {
+                        let html = '';
+                        data.sort((a, b) => a.time - b.time).forEach((data, id) => {
+                            html +=
+                                `<li class="notes-list position-relative" data-note-id=${id}>
+                                    <span class="fw-bold text-primary" data-note-time>${secondsToHms(Math.round(data.time))}</span> <span class="text-uppercase" data-note-title>${data.title}</span>
+                                    <p>${data.note}</p><i class="far fa-trash-alt position-absolute bottom-50 end-0" data-note-remove></i> 
+                                </li>`
+                        })
+                        parent.innerHTML = html;
+                    },
+                    showNotesMessage(parent, message) {
+                        const elem = document.createElement('div');
+                        elem.classList.add('alert', message.class);
+                        elem.textContent = message.text;
+                        parent.append(elem);
+                        setTimeout(() => {
+                            elem.remove();
+                        }, 2000);
+                    },
+                    video: {
+                        data: {},
+                        player: document.querySelector("#video-player"),
+                        init(href, position) {
+                            this.data.id = app.domElements.getId(href);
+                            this.data.title = app.domElements.playListLinks[this.data.id].dataset.bsFile;
+                            const data = app.storage.loadData(href);
+                            if (isNotEmptyObject(data)) {
+                                app.storage.setData(data, this.data)
+                            } else {
+                                this.data.progress = 0;
+                                this.data.position = 0;
+                                this.data.done = false;
+                                this.data.notes = [];
+                            };
+                            if (position) {
+                                this.data.position = Number(position);
+                            }
+                        },
+                        render() {
+                            this.player.src = app.domElements.playListLinks[this.data.id].href;
+                            this.player.volume = app.properties.data.volume;
+                            this.player.playbackRate = app.properties.data.speed;
+                            this.setPosition();
+                            app.domElements.modal.title.textContent = this.data.title;
+                            app.domElements.modal.navigate.render();
+                            app.domElements.modal.renderNotes(app.domElements.modal.notesList, this.data.notes);
+
+                        },
+                        play() {
+                            if (app.properties.data.autoplay) {
+                                this.player.play();
+                            }
+                        },
+                        pause() {
+                            this.player.pause();
+                        },
+                        getPosition() {
+                            this.data.position = this.player.currentTime;
+                        },
+                        setPosition() {
+                            this.player.currentTime = this.data.position;
+                        },
+                        getProgress() {
+                            if (modal.video.player.duration) {
+                                this.data.progress = this.player.currentTime * 100 / this.player.duration;
+                            }
+                        }
+                    },
+                    navigate: {
+                        buttons: [{
+                                elem: document.querySelector("#prev"),
+                                getId(id) {
+                                    return id > 0 ? id - 1 : id;
+                                }
+                            },
+                            {
+                                elem: document.querySelector("#next"),
+                                getId(id) {
+                                    return id < app.domElements.playListLinks.length ? id + 1 : app.domElements
+                                        .playListLinks
+                                        .length
+                                }
+                            }
+                        ],
+                        render() {
+                            this.buttons.forEach(item => {
+                                const id = app.domElements.modal.video.data.id;
+                                const playListLinks = app.domElements.playListLinks
+
+                                item.elem.href = playListLinks[item.getId(id)].href;
+                                item.elem.dataset.bsFile = playListLinks[item.getId(id)].dataset
+                                    .bsFile
+
+                                if (item.getId(id) == id) {
+                                    item.elem.style.display = 'none'
+                                } else {
+                                    item.elem.style.display = ''
+                                }
+
+                            })
+                        }
+                    }
 
 
-        let fromStorageData, progressToStorage, progressFromStorage, currentFileIdx,
-            button, videoAndCategoryName, link, elemProgressBar, autoplay,
-            siblings, scrollPosition = null;
 
+                },
 
-        //прокрутка вверх
-        function scrollTop() {
-            scrollToTop.blur();
-            switch (scrollToTop.textContent) {
-                case "Туда!":
-                    scrollPosition = document.documentElement.scrollTop;
-                    document.documentElement.scrollTop = 0;
-                    renameScrollButton("Обратно!");
-                    break;
-                case "Обратно!":
-                    document.documentElement.scrollTop = scrollPosition;
-                    scrollPosition = 0;
-                    renameScrollButton("Туда!");
-            };
-        };
+            },
+            properties: {
+                data: {},
+                scrollPosition: null,
+                getProp() {
+                    this.data.autoplay = app.domElements.autoplayCheckbox.checked;
+                    this.data.volume = Number(app.domElements.volumeInput.value);
+                    this.data.speed = Number(app.domElements.playRateInput.value);
+                },
+                render() {
+                    app.domElements.autoplayCheckbox.checked = this.data.autoplay;
+                    app.domElements.volumeInput.value = this.data.volume;
+                    app.domElements.playRateLabel.textContent = app.domElements.playRateInput.value = this.data
+                        .speed;
+                }
 
-        function renameScrollButton(name) {
-            scrollToTop.textContent = name;
+            },
+            storage: {
+                saveData(key, object) {
+                    const jsonData = JSON.stringify(object);
+                    window.localStorage.setItem(key, jsonData);
+                },
+                loadData(key) {
+                    const jsonData = window.localStorage.getItem(key);
+                    return JSON.parse(jsonData);
+                },
+                setData(data, object) {
+                    for (let key in data) {
+                        object[key] = data[key];
+                    }
+                }
+
+            }
+
         }
 
-        // скрыть-отобразить кнопку To Top (scrollToTop)
-        function checkToTopVisible() {
+        //Aliases
+        const dom = app.domElements
+        const modal = app.domElements.modal
+        const properties = app.properties
+        const storage = app.storage
+
+        const defaultProperties = {
+            autoplay: true,
+            volume: 1,
+            speed: 1
+        };
+
+
+
+        // Functions
+
+        //пользовательский тип ошибки для перехвата работы forEach и получения id в методе getId
+        function CatchId(id) {
+            this.id = id
+        }
+
+        function isNotEmptyObject(object) {
+            for (let key in object) {
+                return true;
+            }
+            return false;
+        }
+
+        function setScrollBtnDisplay() {
             const scrollHeight = document.documentElement.scrollTop;
             const clientHeight = document.documentElement.clientHeight;
             if (scrollHeight > clientHeight / 2) {
-                scrollToTop.style.display = "inline-block";
+                dom.scrollBtn.style.display = "inline-block";
             } else {
-                if (scrollPosition === null) {
-                    scrollToTop.style.display = "none";
-                    scrollPosition = 0;
+                if (properties.scrollPosition === null) {
+                    dom.scrollBtn.style.display = "none";
+                    properties.scrollPosition = 0;
                 }
             }
         }
 
-        // установка значений плеера, и кнопок предыдущее,следующее видео
-        function initVideoPlayer(link) {
-            videoAndCategoryName = getCategoryName(link);
-            modalTitle.textContent = videoAndCategoryName;
-            loadAndPlay(link);
-            setPagination(link);
-        };
-
-        // срабатывает при событии 'ended' элемента video
-        function playNextVideo() {
-            if (autoplayCheckbox.checked) {
-                video.pause();
-                initVideoPlayer(nextLink.href);
-            };
-        };
-
-        // срабатывает при нажатии кнопок пред. след.
-        function paginationClicked(event) {
-            event.preventDefault();
-            initVideoPlayer(event.originalTarget.href);
-        };
-
-        // преобразует строку "true" в логическое true
-        function boolFromString(string) {
-            if (string == "true") {
-                return true;
-            } else {
-                return false;
-            }
-        };
-
-        // получает значение data-bs-file (название категории и видео) из массива элементов по переданной ссылке
-        function getCategoryName(link) {
-            return playListLinks[getCurrentId(link)].getAttribute("data-bs-file")
-        };
-
-        // установка значения чекбокса из localStorage
-        function setFormCheck() {
-            autoplay = boolFromString(window.localStorage.getItem("autoplayCheckbox"));
-            autoplayCheckbox.checked = autoplay;
-            volumeInput.value = (window.localStorage.getItem("volume")) ? window.localStorage.getItem("volume") :
-                0.5;
-            let playRate = (window.localStorage.getItem("playRate")) ? window.localStorage.getItem("playRate") :
-                1;
-            playRateInput.value = playRate;
-            playRateLabel.textContent = playRate;
-        };
-
-
-        // заполняет прогрессбары по всему списку, из сохраненных значений прогресса
-        function fillProgressBar() {
-            let dataFromStorage;
-            for (let a of playListLinks) {
-                dataFromStorage = getStorageData(a.href);
-                a.childNodes[3].childNodes[1].style.width = dataFromStorage.progress + "%";
-            };
-        };
-
-        // возвращает значение прогресса просмотра элемента video, в процентах
-        function getCurrentProgress() {
-            return video.currentTime * 100 / video.duration;
-        };
-
-        // сохранить текущее время и прогресс в localStorage для открытого видео
-        function saveCurrentTime() {
-            progressToStorage = getCurrentProgress();
-            window.localStorage.setItem(video.src, Array(video.currentTime, progressToStorage));
-        };
-
-        // срабатывает при событии 'timeupdate' у элемента video. 
-        // обновление прогрессбара для просматриваемого видео
-        function updateProgressBar() {
-            elemProgressBar = playListLinks[currentFileIdx].childNodes[3].childNodes[1];
-            elemProgressBar.style.width = getCurrentProgress() + "%"
-        };
-
-        // устанавливает скорость, источник, запускает плеер
-        // устанавливает текущее время из сохраненного в localStorage
-        function loadAndPlay(link) {
-            let dataFromStorage = getStorageData(link);
-            video.defaultPlaybackRate = Number(playRateInput.value);
-            video.src = link;
-            video.currentTime = dataFromStorage.time;
-        };
-
-        // получает массив из двух элементов время, прогресс, возрващает нули, если нет записи
-        function getStorageData(link) {
-            let time, progress;
-            if (!!window.localStorage.getItem(link)) {
-                fromStorageData = window.localStorage.getItem(link).split(",")
-                time = Number(fromStorageData[0]),
-                    progress = Number(fromStorageData[1])
-            } else {
-                time = 0;
-                progress = 0;
-            };
-            return {
-                time: time,
-                progress: progress
-            }
-        };
-
-        // возвращает id в массиве элементов а, содержащих ссылки и данные всех видео на странице
-        function getCurrentId(link) {
-            for (let a of Object.entries(playListLinks)) {
-                if (link == a[1].href) {
-                    currentFileIdx = a[0];
-                };
-            };
-            return Number(currentFileIdx);
-        };
-
-        // возвращает массив из двух элементов, содержащих id соседних видео
-        function getSiblings(currentFileIdx) {
-            let prev, next;
-            if (Number(currentFileIdx) > 0) {
-                prev = Number(currentFileIdx) - 1;
-            } else {
-                prev = 0;
-            };
-
-            if (Number(currentFileIdx) < playListLinks.length - 1) {
-                next = Number(currentFileIdx) + 1;
-            } else {
-                next = playListLinks.length - 1;
-            };
-            return {
-                prev: prev,
-                next: next
-            };
-        };
-
-        // устанавливает значения href для кнопок под видео, пред, след.
-        function setPagination(link) {
-            currentFileIdx = getCurrentId(link);
-            siblings = getSiblings(currentFileIdx);
-            if (siblings.prev == currentFileIdx) {
-                prevLink.style.display = "none";
-            } else {
-                prevLink.style.display = "";
-            };
-            if (siblings.next == currentFileIdx) {
-                nextLink.style.display = "none";
-            } else {
-                nextLink.style.display = "";
-            };
-            prevLink.href = playListLinks[siblings.prev].href;
-            prevLink.setAttribute("data-bs-file", playListLinks[siblings.prev].getAttribute("data-bs-file"));
-            nextLink.href = playListLinks[siblings.next].href;
-            nextLink.setAttribute("data-bs-file", playListLinks[siblings.next].getAttribute("data-bs-file"));
-        };
-
-
-        // создание событий для различных элементов
-        playRateInput.addEventListener("input", function (e) {
-            playRateLabel.textContent = playRateInput.value;
-            renderNewTime();
-
-        });
-        window.addEventListener("load", function (e) {
-            fillProgressBar();
-            renderNewTime();
-            setFormCheck();
-
-        });
-        document.addEventListener("scroll", checkToTopVisible);
-        scrollToTop.addEventListener("click", scrollTop);
-        prevLink.addEventListener("click", paginationClicked);
-        nextLink.addEventListener("click", paginationClicked);
-        video.addEventListener("timeupdate", saveCurrentTime);
-        video.addEventListener("timeupdate", updateProgressBar);
-        video.addEventListener("pause", saveCurrentTime);
-        video.addEventListener("ended", playNextVideo);
-        video.addEventListener("loadedmetadata", function (event) {
-            video.play();
-            video.volume = Number(volumeInput.value);
-        });
-        window.addEventListener("unload", saveCurrentTime);
-        formCheck.addEventListener("change", function (event) {
-            window.localStorage.setItem("autoplayCheckbox", autoplayCheckbox.checked);
-            window.localStorage.setItem("playRate", playRateInput.value);
-            window.localStorage.setItem("volume", volumeInput.value);
-
-        });
-        // autoplayCheckbox.addEventListener("change", function (event) {
-        //     window.localStorage.setItem("autoplayCheckbox", autoplayCheckbox.checked);
-        // });
-
-        exampleModal.addEventListener("hide.bs.modal", function (event) {
-            video.pause();
-        });
-
-        exampleModal.addEventListener("show.bs.modal", function (event) {
-            link = event.relatedTarget.href;
-            initVideoPlayer(link);
-        });
-
-        function renderNewTime() {
-            const timeArray = document.querySelectorAll("[data-time]");
-            timeArray.forEach(elem => {
-                let newTime = secondsToHms(changeTimeRate(hmsToSeconds(elem.dataset.time), playRateInput
-                    .value));
-                if (playRateInput
-                    .value !== "1"){
-                    newTime = elem.dataset.time + " / " + newTime
-                }
-                elem.textContent = newTime;
-            });
+        function loadPlayer(href, position = false) {
+            modal.video.init(href, position);
+            modal.video.render();
         }
 
+        function onPlayListItemClick(e) {
+            if (e.target && e.target.dataset.done !== undefined) {
+                const li = e.target.closest('li');
+                const href = li.querySelector('a').href
+                const data = storage.loadData(href) || {}
+
+                data.id = dom.getId(href);
+                data.done = !data.done
+                dom.renderDoneElem(data);
+                storage.saveData(href, data);
+            }
+        }
+
+        function onNotesOpenBtnClick(e) {
+            e.preventDefault();
+            if (modal.notesBlock.classList.contains("d-none")) {
+                modal.playerBlock.classList.add("col-9");
+                modal.playerBlock.classList.remove("col-12");
+            } else {
+                modal.playerBlock.classList.remove("col-9");
+                modal.playerBlock.classList.add("col-12");
+            }
+            modal.notesBlock.classList.toggle("d-none");
+            modal.noteTimeLabel.textContent = secondsToHms(Math.round(modal.video.data.position))
+        }
+
+
+
+        function onNoteSaveBtnClick(e) {
+            e.preventDefault();
+            e.target.blur();
+            const data = {
+                time: modal.video.data.position,
+                title: modal.noteTitle.value,
+                note: modal.noteBody.value,
+            }
+            const idOfTime = modal.video.data.notes.every(obj => obj.time !== data.time)
+
+            if (idOfTime) {
+                modal.video.data.notes.push(data);
+                storage.saveData(modal.video.player.src, modal.video.data);
+                modal.renderNotes(modal.notesList, modal.video.data.notes);
+                modal.showNotesMessage(modal.notesAddBlock, modal.notesMessage.success);
+                modal.noteTitle.value = modal.noteBody.value = ''
+
+                dom.renderOffCanvasNotes();
+
+            } else {
+                modal.showNotesMessage(modal.notesAddBlock, modal.notesMessage.error)
+            }
+
+
+        }
+
+        function onNotesListClick(e) {
+            const id = e.target.closest('li').dataset.noteId;
+            if (e.target && e.target.dataset.noteTime !== undefined) {
+                modal.video.player.currentTime = modal.video.data.notes[id].time;
+                if (properties.data.autoplay) {
+                    modal.video.play();
+                }
+            };
+            if (e.target && e.target.dataset.noteRemove !== undefined) {
+                modal.video.data.notes.splice(id, 1);
+                storage.saveData(modal.video.player.src, modal.video.data);
+                modal.renderNotes(modal.notesList, modal.video.data.notes);
+
+                dom.renderOffCanvasNotes();
+
+            }
+
+        }
+
+        function onNotesOffCanvasList(e) {
+            e.preventDefault();
+            if (e.target.href) {
+                dom.notesOffCanvas.hide();
+            }
+
+        }
+
+        function onClearStorageBtnClick(e) {
+            window.localStorage.clear();
+            console.log('storage was cleared');
+        }
+
+
+
+
+
+        // Time utilites
         function changeTimeRate(seconds, rate) {
             return Math.floor(seconds / rate);
         }
 
         function hmsToSeconds(time) {
-            const hours = +time.slice(0, 2);
-            const seconds = +time.slice(6, 8);
-            const minutes = +time.slice(3, 5);
-            return (hours * 3600) + (minutes * 60) + seconds;
+            const [hours, minutes, seconds] = time.split(":");
+            const result = (Number(hours) * 3600) + (Number(minutes) * 60) + Number(seconds);
+            return result
         }
 
         function secondsToHms(time) {
@@ -386,12 +659,118 @@
         }
 
         function format2digit(number) {
-            let result = number;
+            let result = `${number}`;;
             if (number.toString().length < 2) {
                 result = `0${number}`;
             }
             return result;
         }
+
+
+        //Events
+        document.addEventListener('DOMContentLoaded', (e) => {
+            const data = storage.loadData('properties');
+            if (isNotEmptyObject(data)) {
+                storage.setData(data, properties.data);
+            } else {
+                //set default properties
+                properties.data = defaultProperties;
+                storage.saveData('properties', properties.data);
+            }
+            properties.render();
+            dom.renderTime();
+            dom.renderPlayListItems();
+            dom.renderOffCanvasNotes();
+
+        })
+
+        document.addEventListener('scroll', setScrollBtnDisplay);
+
+        dom.scrollBtn.addEventListener('click', (e) => {
+            dom.toScroll();
+        })
+
+        dom.clearStorageBtn.addEventListener('click', (e) => {
+            onClearStorageBtnClick(e);
+        })
+
+        dom.playListItems.forEach(item => {
+            item.addEventListener('click', e => {
+                onPlayListItemClick(e);
+            })
+        })
+
+        dom.notesOffCanvasList.addEventListener('click', (e) => {
+            onNotesOffCanvasList(e);
+        })
+
+        modal.window.addEventListener('hide.bs.modal', (e) => {
+            modal.video.pause();
+        })
+
+        modal.window.addEventListener('show.bs.modal', (e) => {
+            let position = null;
+            if (e.relatedTarget.dataset.position) {
+                position = e.relatedTarget.dataset.position;
+            }
+            loadPlayer(e.relatedTarget.href, position);
+        })
+
+        modal.navigate.buttons.forEach(btn => {
+            btn.elem.addEventListener('click', (e) => {
+                e.preventDefault();
+                loadPlayer(e.target.href);
+            })
+        })
+
+
+        dom.propertiesForm.addEventListener('input', (e) => {
+            properties.getProp();
+            storage.saveData('properties', properties.data);
+            properties.render();
+
+            if (e.target.id == 'playRateInput') {
+                dom.renderTime();
+            }
+
+        })
+
+        modal.video.player.addEventListener('loadedmetadata', (e) => {
+            modal.video.play();
+
+        })
+
+        modal.video.player.addEventListener('timeupdate', (e) => {
+            modal.video.getPosition();
+            modal.video.getProgress();
+            dom.renderProgressBar(modal.video.data);
+            storage.saveData(modal.video.player.src, modal.video.data);
+            if (!modal.notesBlock.classList.contains(".d-none")) {
+                modal.noteTimeLabel.textContent = secondsToHms(Math.round(modal.video.data.position))
+            }
+        })
+
+        modal.video.player.addEventListener('ended', (e) => {
+            const id = modal.video.data.id
+            modal.video.data.done = true;
+            dom.renderDoneElem(modal.video.data);
+            storage.saveData(modal.video.player.src, modal.video.data);
+            if (id < dom.playListLinks.length && properties.data.autoplay) {
+                loadPlayer(dom.playListLinks[id + 1].href);
+            }
+        })
+
+        modal.notesOpenBtn.addEventListener('click', (e) => {
+            onNotesOpenBtnClick(e);
+        })
+
+        modal.noteSaveBtn.addEventListener('click', (e) => {
+            onNoteSaveBtnClick(e);
+        })
+
+        modal.notesList.addEventListener('click', (e) => {
+            onNotesListClick(e);
+        })
     </script>
 
 
