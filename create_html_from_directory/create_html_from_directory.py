@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import os
 from datetime import datetime
 import pytz
@@ -93,7 +93,7 @@ class VideoFile:
         else:
             return self.__add__(object)
 
-def format_nums(string):
+def format_nums(string:str) -> str:
     result = string
 
     r = re.compile(r'^[0-9]+')
@@ -130,7 +130,6 @@ def create_video(files):
 
 def get_video_files_to_dict(path):
     root, directories, files = next(os.walk(path))  # for get root_lvl directories and root_lvl files
-    print(root, directories, files)
     if files:  # in root
         VideoFile.root = root
         VideoFile.directory_key = root
@@ -146,28 +145,36 @@ def get_video_files_to_dict(path):
 
 
 @stopwatch
-def main():
-    current_directory = os.getcwd()
-    get_video_files_to_dict(path=current_directory)
-    print(f'Total duration: {sec_to_hms(VideoFile.total_duration)}')
+def main(cwdirectory):
+    get_video_files_to_dict(path=cwdirectory)
+    print(f'Общая продолжительность видеофайлов: {sec_to_hms(VideoFile.total_duration)}')
 
     env = jinja2.Environment(loader=jinja2.PackageLoader('jj2_templates'), autoescape=True)
     template = env.get_template('category.html')
     html = template.render(os=os,
                            video_files_dict=VideoFile.video_files_dict,
-                           path=os.path.basename(current_directory),
+                           path=os.path.basename(cwdirectory),
                            total_duration=sec_to_hms(VideoFile.total_duration),
                            hms=sec_to_hms,
                            sum=sum)
 
-    write_to_file(current_directory, 'video_index.html', html, 'w')
+    write_to_file(cwdirectory, 'video_index.html', html, 'w')
 
     if VideoFile.error_instance:
         current_time = pytz.utc.localize(datetime.utcnow()).astimezone().isoformat()
-        write_to_file(current_directory, 'error.txt', current_time + '\n', 'w')
+        write_to_file(cwdirectory, 'error.txt', current_time + '\n', 'w')
         for file in VideoFile.error_instance:
-            write_to_file(current_directory, 'error.txt', str(file) + '\n', 'a')
+            write_to_file(cwdirectory, 'error.txt', str(file) + '\n', 'a')
 
 
 if __name__ == '__main__':
-    main()
+    work_directory = ''
+    while not os.path.exists(work_directory):
+        work_directory = input('Введите полный путь к каталогу \n'
+                                  'или Q для завершения работы программы: ')
+        if work_directory in 'Qq':
+            print(f'Указан код выхода {work_directory}. Работа будет завершена.')
+            exit()
+    work_directory = os.path.realpath(work_directory)
+    os.chdir(work_directory)
+    main(work_directory)
