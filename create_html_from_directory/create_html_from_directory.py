@@ -5,7 +5,6 @@ import pytz
 from pymediainfo import MediaInfo
 import time
 import jinja2
-import jj2_templates
 import re
 
 
@@ -41,7 +40,7 @@ class VideoFile:
             media_info = MediaInfo.parse(self.full_path)
             for track in media_info.tracks:
                 if track.track_type == "Video":
-                    self.duration = int(track.duration * 0.001)
+                    self.duration = int(float(track.duration) * 0.001)
         except Exception as e:
             print(e)
 
@@ -121,7 +120,7 @@ def write_to_file(path, filename, text='', flag='w'):
 
 
 def create_video(files):
-    video_format = list(('mp4', 'avi', 'mpg'))
+    video_format = list(('mp4', 'avi', 'mpg', 'mkv'))
     for file in sorted(files, key=format_nums):
         if file.split('.')[-1] in video_format:
             video = VideoFile(file)
