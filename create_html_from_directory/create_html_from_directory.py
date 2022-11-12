@@ -169,11 +169,15 @@ def main(cwdirectory):
 if __name__ == '__main__':
     work_directory = ''
     while not os.path.exists(work_directory):
-        work_directory = input('Введите полный путь к каталогу \n'
-                                  'или Q для завершения работы программы: ')
+        work_directory = input('Введите полный путь к каталогу или Q для завершения работы программы \n'
+                                  '(Enter для использования текущего пути): ')
+        if not work_directory:
+            work_directory = os.getcwd()
+            print(work_directory)
         if work_directory in 'Qq':
             print(f'Указан код выхода {work_directory}. Работа будет завершена.')
             exit()
+
     work_directory = os.path.realpath(work_directory)
     os.chdir(work_directory)
     main(work_directory)
