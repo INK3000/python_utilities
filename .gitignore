@@ -1,6 +1,8 @@
 .idea/
 __pycache__/
-.venv
+.venv*
 .fuse*
 Calcs/
 **/temp*.*
+Test/
+
