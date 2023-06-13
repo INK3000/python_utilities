@@ -1,4 +1,4 @@
-### kbstatus
+# kbstatus
 
 **kbstatus** is a small i3status add-on written in Python,
 that let's you to display the status of your keyboard
