@@ -4,9 +4,12 @@
 that let's you to display the status of your keyboard
 (numlock, capslock, current layouti) in the far-left position.
 
+
+
 ## Installation
 
 Copy kbstatus to any directory of your PATH i.e. ~/.local/bin.
+
 
 Change the permission to 755 i.e. chmod 755 ~/.local/bin/kbstatus.
 
